@@ -5,6 +5,18 @@ Each of the cluster types that form the Glasswall ICAP System are defined throug
 ### Adaptation Cluster
 Deploying to local cluster (Docker Desktop).
 
+#### Prerequisites
+
+1- Create transactionstoresecret secret
+
+```
+kubectl create -n icap-adaptation secret generic transactionstoresecret --from-literal=accountName=ACCOUNT_NAME --from-literal=accountKey=$ACCOUNTKEY
+```
+
+Note: Replace ACCOUNT_NAME and $ACCOUNTKEY with the corresponding values
+
+2- The minimum reqs are 2 machines with at least 2 vCPUs as the adaptation-service requires at least 1 vCPUs.
+
 Reset the Kubernetes cluster.
 
 ```
@@ -52,6 +64,14 @@ rabbitmq-plugins enable rabbitmq_management
 ```
 
 Exit from the RabbitMQ Pod.
+
+In case of the pods CrashLoopBackOff, delete the pods by executing the following command:
+
+```
+kubectl get pods
+kubectl delete pod adaptation-service- event-submission-service- -n icap-adaptation
+```
+
 Setup of port forwarding from a local port (e.g. 8080) to the RabbitMQ Management Port
 ```
 kubectl port-forward -n icap-adaptation rabbitmq-controller-747n4 8080:15672

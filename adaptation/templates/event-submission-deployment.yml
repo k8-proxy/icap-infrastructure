@@ -21,10 +21,10 @@ spec:
         - name: ACCOUNT_NAME
           valueFrom:
             secretKeyRef:
-              name: transactionStoreSecret
+              name: transactionstoresecret
               key: accountName
         - name: ACCOUNT_KEY
           valueFrom:
             secretKeyRef:
-              name: transactionStoreSecret
+              name: transactionstoresecret
               key: accountKey
