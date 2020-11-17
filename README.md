@@ -23,6 +23,15 @@ Reset the Kubernetes cluster.
 cd .\adaptation
 ```
 
+3- Replace the storage class name with your cluster value in adaptation/values.yaml as following:
+
+```
+kubectl get sc
+```
+
+Add the name of the sc in .Values.storage.class.
+
+ 
 Create the Kubernetes namespace
 ```
 kubectl create ns icap-adaptation
@@ -114,6 +123,12 @@ kubectl create -n icap-adaptation secret docker-registry regcred	\
 	--docker-email=<email address>
 ```
 
+Create transactionstoresecret secret
+
+```
+kubectl create -n icap-adaptation secret generic transactionstoresecret --from-literal=accountName=ACCOUNT_NAME --from-literal=accountKey=$ACCOUNTKEY
+```
+
 Install the cluster components
 ```
 helm install ./adaptation --namespace icap-adaptation --generate-name
@@ -130,9 +145,22 @@ rabbitmq-controller-747n4            1/1     Running   0          3m22s
 
 If required, the following steps provide access to the RabbitMQ Management Console
 
+Change the current context
+
+```
+kubectl config set-context --current --namespace=icap-adaptation
+```
+
 Run the below command to enable the Management Plugin, this step takes a couple of minutes
 ```
 kubectl exec -it rabbitmq-controller-747n4 -- /bin/bash -c "rabbitmq-plugins enable rabbitmq_management"
+```
+
+In case of the pods CrashLoopBackOff, delete the pods by executing the following command:
+
+```
+kubectl get pods
+kubectl delete pod adaptation-service- event-submission-service- -n icap-adaptation
 ```
 
 Setup of port forwarding from a local port (e.g. 8080) to the RabbitMQ Management Port
