@@ -8,4 +8,4 @@ service:
 imagestore:
   icapmanagementui:
     repository: glasswallsolutions/icap-management-ui
-    tag: main
+    tag: main-latest

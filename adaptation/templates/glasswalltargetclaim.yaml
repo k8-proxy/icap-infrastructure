@@ -7,7 +7,7 @@ apiVersion: v1
 metadata:
   name: glasswalltarget-pvc
 spec:
-  # storageClassName: azurefile
+  storageClassName: {{ .Values.storage.class }}
   accessModes: [ "ReadWriteOnce" ]
   resources:
     requests:
