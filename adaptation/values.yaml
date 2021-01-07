@@ -71,6 +71,7 @@ policyupdateservice:
   replicas: 1
   port: 10000
   rolename: policy-update-service-role
+  existingSecret: policyupdateservicesecret
 requestprocessingservice:
   configmapname: request-processing-config
   cpulimit: 1
