@@ -22,7 +22,7 @@ spec:
         image: {{ .Values.imagestore.podcontrollerservice.registry }}{{ .Values.imagestore.podcontrollerservice.repository }}:{{ .Values.imagestore.podcontrollerservice.tag }}
         env:
         - name: POD_COUNT
-          value: {{ .Values.podcontrollerservice.podcount }}       
+          value: "{{ .Values.podcontrollerservice.podcount }}"       
         resources:
           limits:
             cpu: "1"
