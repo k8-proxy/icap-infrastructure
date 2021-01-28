@@ -37,9 +37,13 @@ queue:
     port: "\"5672\""
 adaptationservice:
   name: adaptation-service
-  replicas: 1
+  replicas: 0
   amqpurl: "amqp://guest:guest@rabbitmq-service:5672/"
   rolename: adaptation-service-role
+podcontrollerservice:
+  name: pod-controller
+  replicas: 1
+  podcount: "50"
 archiveadaptationservice:
   name: archive-adaptation-service
   namespace: icap-adaptation
@@ -189,6 +193,10 @@ imagestore:
     registry: ""
     repository: glasswallsolutions/transaction-query-service
     tag: main-bd47d0a
+  podcontrollerservice:
+    registry: ""
+    repository: azopat/pod-controller
+    tag: latest
 secrets:
   containerregistry:
     dockerconfigjson: "<<https://gw-icap-keyvault.vault.azure.net/secrets/az-registry-dockerconfig>>"

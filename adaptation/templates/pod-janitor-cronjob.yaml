@@ -6,6 +6,7 @@ metadata:
   name: {{ .Values.podjanitor.name }}
 spec:
   schedule: "*/1 * * * *"
+  suspend: true
   jobTemplate:
      metadata:
        labels:

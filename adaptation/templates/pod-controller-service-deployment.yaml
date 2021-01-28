@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.podcontrollerservice.name }}
+spec:
+  replicas: {{ .Values.podcontrollerservice.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.podcontrollerservice.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.podcontrollerservice.name }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: {{ .Values.prometheus.metricspath }}
+        prometheus.io/port: "{{ .Values.prometheus.metricsport }}"
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.adaptationname  }}
+      containers:
+      - name: pod-controller-service
+        image: {{ .Values.imagestore.podcontrollerservice.registry }}{{ .Values.imagestore.podcontrollerservice.repository }}:{{ .Values.imagestore.podcontrollerservice.tag }}
+        env:
+        - name: POD_COUNT
+          value: {{ .Values.podcontrollerservice.podcount }}       
+        resources:
+          limits:
+            cpu: "1"
+            memory: 100Mi
+          requests:
+            cpu: "2"
+            memory: 200Mi
