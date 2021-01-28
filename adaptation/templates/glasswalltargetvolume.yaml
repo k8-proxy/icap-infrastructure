@@ -8,7 +8,7 @@ metadata:
 spec:
   # storageClassName: azurefile
   capacity:
-    storage: 3Gi
+    storage: 5Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
