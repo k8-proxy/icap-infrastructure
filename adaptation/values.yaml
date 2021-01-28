@@ -64,7 +64,6 @@ eventsubmissionservice:
   name: event-submission-service
   replicas: 1
   amqpurl: "" # this should be deprecated in preference to queue specific hostname
-  existingSecret: transactionstoresecret
 policyupdateservice:
   name: policy-update-service
   applabel: policyupdate
