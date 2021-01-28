@@ -25,8 +25,8 @@ spec:
           value: "{{ .Values.podcontrollerservice.podcount }}"       
         resources:
           limits:
-            cpu: "1"
-            memory: 100Mi
-          requests:
             cpu: "2"
             memory: 200Mi
+          requests:
+            cpu: "1"
+            memory: 100Mi
