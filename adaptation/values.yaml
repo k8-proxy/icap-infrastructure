@@ -2,6 +2,7 @@ environment:
 rabbitmqService:
   name: rabbitmq-service
   port: 5672
+  managementPort: 15672
   component: rabbitmq
   app: taskQueue
   key: rabbitmq-cluster-operator

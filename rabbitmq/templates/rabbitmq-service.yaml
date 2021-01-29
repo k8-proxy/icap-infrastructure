@@ -6,8 +6,10 @@ metadata:
   name: {{ .Values.rabbitmqService.name }}
 spec:
   ports:
-  - port: {{ .Values.rabbitmqService.port }}
-  - port: {{ .Values.rabbitmqService.managementPort }}
+  - name: amqp
+    port: {{ .Values.rabbitmqService.port }}
+  - name: stats
+    port: {{ .Values.rabbitmqService.managementPort }}
   selector:
     app: {{ .Values.rabbitmqService.app }}
     component: {{ .Values.rabbitmqService.component }}

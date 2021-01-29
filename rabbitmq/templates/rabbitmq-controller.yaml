@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ReplicationController
 metadata:
   labels:
-    component: {{ .Values.rabbitmqController.image }}
+    component: {{ .Values.rabbitmqService.component }}
   name: {{ .Values.rabbitmqController.name }}
 spec:
   replicas: 1
@@ -10,11 +10,11 @@ spec:
     metadata:
       labels:
         app: {{ .Values.rabbitmqController.app }}
-        component: {{ .Values.rabbitmqController.image }}
+        component: {{ .Values.rabbitmqService.component }}
     spec:
       containers:
       - image: {{ .Values.rabbitmqController.image }}
-        name: {{ .Values.rabbitmqController.image }}
+        name: {{ regexReplaceAll "\\W+" .Values.rabbitmqController.image "-" }}
         ports:
         - containerPort: {{ .Values.rabbitmqController.port }}
         resources:
