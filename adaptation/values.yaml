@@ -16,6 +16,8 @@ volumemountpath:
   transactions: /mnt/transactions
 prometheus:
   metricsport: 8081
+  metricspath: /metrics
+  pushgatewayendpoint: "http://pushgateway-prometheus-pushgateway:9091/metrics"
 queue:
   host:
     url: "rabbitmq-service" # this should be deprecated in preference to queue specific hostname

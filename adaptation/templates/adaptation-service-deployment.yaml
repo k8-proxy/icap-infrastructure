@@ -27,6 +27,8 @@ spec:
           value: {{ .Values.adaptationservice.amqpurl }}
         - name: METRICS_PORT
           value: "{{ .Values.prometheus.metricsport }}"
+        - name: PUSHGATEWAY_ENDPOINT
+          value: {{ .Values.prometheus.pushgatewayendpoint }}
         - name: INPUT_MOUNT
           value: {{ .Values.volumemountpath.source }}
         - name: OUTPUT_MOUNT
