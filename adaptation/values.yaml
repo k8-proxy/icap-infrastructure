@@ -54,7 +54,7 @@ archiveadaptationservice:
 icapservice:
   name: icap-service
   applabel: adaptation
-  replicas: 1
+  replicas: 10
   port: 1344
   tlsport: 1345
   enableFileId: true
@@ -79,7 +79,7 @@ cicapservice:
     ServerName: YourServerName
     TmpDir: /var/tmp
     MaxMemObject: 131072
-    DebugLevel: 10
+    DebugLevel: 6
     Pipelining: !!string on
     SupportBuggyClients: !!string off
     ModulesDir: /usr/local/c-icap/lib/c_icap
