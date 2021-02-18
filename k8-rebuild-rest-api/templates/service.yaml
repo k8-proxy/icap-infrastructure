@@ -3,9 +3,12 @@ kind: Service
 metadata:
   name: k8-rebuild-rest-api
 spec:
-  type: ClusterIP
+  type: {{ .Values.service.type }}
   ports:
     - name: http
       port: 80
-      targetPort: 80
+      targetPort: http
+      {{- if .Values.service.nodePort }}
+      nodePort: {{ .Values.service.nodePort }}
+      {{- end }}
   selector: {{- include "common.labels.matchLabels" . | nindent 4 }}

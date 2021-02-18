@@ -3,6 +3,10 @@ image:
   repository: yardenshoham/k8-rebuild-rest-api
   tag: latest
 
+service:
+  type: NodePort
+  nodePort: 31344
+
 resources:
   requests:
     cpu: 100m

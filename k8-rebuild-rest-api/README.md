@@ -23,6 +23,13 @@
 | `image.repository` | App image name     | `yardenshoham/k8-rebuild-rest-api` |
 | `image.tag`        | App image tag      | `latest`                           |
 
+### Exposure parameters
+
+| Parameter          | Description               | Default    |
+| ------------------ | ------------------------- | ---------- |
+| `service.type`     | Kubernetes Service type   | `NodePort` |
+| `service.nodePort` | Kubernetes http node port | `31344`    |
+
 ### App deployment parameters
 
 | Parameter                 | Description                                   | Default                  |
