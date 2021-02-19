@@ -1,0 +1,85 @@
+name: update_icap_server
+env:
+  REPOSITORY: glasswallsolutions
+  IMAGE: k8-proxy-icap-management-ui
+on:
+  workflow_dispatch:
+    inputs:
+      management_ui_repo:
+        description: Management UI repo
+        default: filetrust/icap-management-ui
+        required: true
+      management_ui_branch:
+        description: ICAP management UI branch to use. Leave blank to skip updating
+        default: ''
+        required: false
+      icap_repo:
+        description: icap-infrastructure repo to use
+        default: k8-proxy/icap-infrastructure
+        required: true
+      icap_branch:
+        description: icap-infrastructure branch to use. Leave blank to skip updating
+        required: false
+        default: ''
+      instance_ip:
+        description: ICAP server IP address
+        required: false
+
+jobs:
+  build-push-docker-image:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        if: github.event.inputs.management_ui_branch != ''
+        with:
+          repository: ${{ github.event.inputs.management_ui_repo }}
+          ref: ${{ github.event.inputs.management_ui_branch }}
+
+      - name: Docker Login
+        uses: docker/login-action@v1.6.0
+        if: github.event.inputs.management_ui_branch != ''
+        with:
+          username: k8serviceaccount
+          password: ${{ secrets.ICAPDOCKERSECRET }}
+      
+      - name: Build and Push Docker Image
+        if: github.event.inputs.management_ui_branch != ''
+        run: |
+          BRANCH=$(echo ${{ github.event.inputs.management_ui_branch }} | cut -d"/" -f3)
+          docker build -f server/Dockerfile -t ${{ env.REPOSITORY }}/${{ env.IMAGE }}:${BRANCH}-${GITHUB_SHA::7} -t ${{ env.REPOSITORY }}/${{ env.IMAGE }}:${BRANCH}-latest .
+          docker push ${{ env.REPOSITORY }}/${{ env.IMAGE }}
+      
+      - name: Upgrade ICAP and Management UI
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ github.event.inputs.instance_ip }}
+          username: ubuntu
+          key: '${{ secrets.SSH_KEY }}'
+          script: |
+            set -e
+            MANAGEMENT_UI_BRANCH=${{ github.event.inputs.management_ui_branch }}
+            ICAP_BRANCH=${{ github.event.inputs.icap_branch }}
+            if [[ -z "$ICAP_BRANCH" ]]; then
+              echo "Skipping updating ICAP server"
+            else
+              rm -rf ~/icap-infrastructure
+              ICAP_REPO=${{ github.event.inputs.icap_repo }}
+              git clone https://github.com/${ICAP_REPO}.git && cd icap-infrastructure && git checkout ${{ github.event.inputs.icap_branch }}
+              chmod +x scripts/update-server.sh
+              ./scripts/update-server.sh
+            fi
+
+            if [[ -z "$MANAGEMENT_UI_BRANCH" ]]; then
+              echo "Skipping updating management UI"
+            else
+              GITHUB_SHA=${{ github.sha }}
+              TAG=${MANAGEMENT_UI_BRANCH}-${GITHUB_SHA::7}
+              cd ~/icap-infrastructure
+              helm upgrade --install administration -n management-ui \
+              --set imagestore.icapmanagementui.repository=${{ env.REPOSITORY }}/${{ env.IMAGE }} \
+              --set imagestore.icapmanagementui.tag=${TAG}} \
+              administration/ 
+            fi
+

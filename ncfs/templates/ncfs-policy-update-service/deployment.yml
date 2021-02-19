@@ -18,17 +18,20 @@ spec:
       labels:
         app: {{ template "ncfs-policy-update-service.name" . }}  
     spec:
-      serviceAccountName: {{ template "ncfs-policy-update-service.fullname" . }}-service-account
+      serviceAccountName: ncfs-policy-update-service-account
       containers:    
       - name: {{ .Chart.Name }}
         image: {{ .Values.imagestore.ncfspolicyupdateservice.registry}}{{ .Values.imagestore.ncfspolicyupdateservice.repository }}:{{ .Values.imagestore.ncfspolicyupdateservice.tag }}
         ports:
         - containerPort: {{ .Values.ncfspolicyupdateservice.service.port }}
+        - containerPort: {{ .Values.prometheus.metricsport }}
         env:
         - name: NAMESPACE
           value: {{ .Release.Namespace }}
         - name: LISTENING_PORT
           value: "{{ .Values.ncfspolicyupdateservice.service.port }}"
+        - name: METRICS_PORT
+          value: "{{ .Values.prometheus.metricsport }}"
         - name: CONFIGMAP_NAME
           value: {{ .Values.referencencfs.configmapname }}
         - name: USERNAME

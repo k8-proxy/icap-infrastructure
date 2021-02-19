@@ -1,0 +1,16 @@
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-event-submission
+  annotations:
+    volume.beta.kubernetes.io/storage-class: ""
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.transactionstore.storage }}
+  selector:
+    matchLabels:
+      usage: pv-event-submission

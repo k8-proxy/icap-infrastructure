@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "identitymanagementservice.fullname" . }}
+  labels:
+    {{- include "identitymanagementservice.labels" . | nindent 4 }}
+spec:
+  revisionHistoryLimit: 0
+  replicas: {{ .Values.identitymanagementservice.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "identitymanagementservice.matchLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "identitymanagementservice.labels" . | nindent 8 }}
+      annotations:
+        buildID: {{ .Values.buildID | default "" | quote }}
+    spec:
+      volumes:
+      - name: users-volume
+        persistentVolumeClaim:
+          claimName: pvc-userstore      
+      containers: 
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.imagestore.identitymanagementservice.registry }}{{ .Values.imagestore.identitymanagementservice.repository }}:{{ .Values.imagestore.identitymanagementservice.tag }}"
+          ports:
+            - name: http
+              containerPort: {{ .Values.identitymanagementservice.deployment.containerPort }}
+              protocol: TCP
+          {{- if .Values.identitymanagementservice.probes.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          {{- end }}
+          volumeMounts:
+          - name: users-volume
+            mountPath: /mnt/users
+          env:
+            {{- range $key, $value := .Values.identitymanagementservice.configuration }}
+            - name: {{ $key }}
+              value: {{ $value }}
+            {{- end }}
+          envFrom:
+          - secretRef:
+              name: identitymanagementservicesecrets   
+          - secretRef:
+              name: userstoresecret   
+          - secretRef:
+              name: smtpsecret   
+          resources:
+{{ toYaml .Values.identitymanagementservice.resources | indent 12 }}
+    {{- with .Values.identitymanagementservice.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.identitymanagementservice.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.identitymanagementservice.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+      imagePullSecrets:
+        - name: identitymanagementservice-registry-credential

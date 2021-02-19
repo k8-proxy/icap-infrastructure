@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.identitymanagementservice.name }}
+  labels:
+    {{- include "identitymanagementservice.labels" . | nindent 4 }}
+{{- if .Values.identitymanagementservice.service.labels }}
+{{ toYaml .Values.identitymanagementservice.service.labels | indent 4}}
+{{- end }}    
+spec:
+  type: {{ .Values.identitymanagementservice.service.type }}
+  ports:
+    - port: {{ .Values.identitymanagementservice.service.port }}
+      targetPort: {{ .Values.identitymanagementservice.service.port }}
+      protocol: TCP
+  selector:
+    {{- include "identitymanagementservice.matchLabels" . | nindent 4 }}

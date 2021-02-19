@@ -1,29 +1,31 @@
+{{- $root := . }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "policy-management-api.fullname" . }}-policy-api
+  name: {{ template "policy-management-api.fullname" . }}
   labels:
-    app: {{ template "policy-management-api.name" . }}
-    chart: {{ template "policy-management-api.chart" . }}
-    draft: {{ .Values.draft | default "draft-app" }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "policy-management-api.labels" . | nindent 4 }}
 spec:
   revisionHistoryLimit: 0
   replicas: {{ .Values.policymanagementapi.replicaCount }}
   selector:
     matchLabels:
-      app: {{ template "policy-management-api.name" . }}
-      release: {{ .Release.Name }}
+      {{- include "policy-management-api.matchLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: {{ template "policy-management-api.name" . }}
-        draft: {{ .Values.draft | default "draft-app" }}
-        release: {{ .Release.Name }}
+        {{- include "policy-management-api.labels" . | nindent 8 }}
       annotations:
         buildID: {{ .Values.buildID | default "" | quote }}
     spec:
+      serviceAccountName: policy-management-api-service-account
+      volumes:
+      - name: config-volume
+        configMap:
+          name: {{ template "policy-management-api.fullname" . }}
+      - name: policy-volume
+        persistentVolumeClaim:
+          claimName: pvc-policystore        
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.imagestore.policymanagementapi.registry }}{{ .Values.imagestore.policymanagementapi.repository }}:{{ .Values.imagestore.policymanagementapi.tag }}"
@@ -41,65 +43,33 @@ spec:
               path: /
               port: http
           {{- end }}
-          envFrom:
-          - configMapRef:
-              name: {{ template "policy-management-api.fullname" . }}-policy-configuration
+          volumeMounts:
+          - name: config-volume
+            mountPath: /app/config
+          - name: policy-volume
+            mountPath: /mnt/policies
           env:
-            - name: AccountName
-              valueFrom:
-                secretKeyRef:
-                  name: policystoresecret
-                  key: accountName
-            - name: AccountKey
-              valueFrom:
-                secretKeyRef:
-                  name: policystoresecret
-                  key: accountKey
-            - name: PolicyUpdateServiceEndpointCsv
+            - name: PolicyUpdateServiceUsername
               valueFrom:
                 secretKeyRef:
                   name: policyupdateserviceref
-                  key: PolicyUpdateServiceEndpointCsv
-            - name: TokenUsername
+                  key: username
+            - name: PolicyUpdateServicePassword
               valueFrom:
                 secretKeyRef:
                   name: policyupdateserviceref
-                  key: TokenUsername
-            - name: TokenPassword
-              valueFrom:
-                secretKeyRef:
-                  name: policyupdateserviceref
-                  key: TokenPassword
-            - name: NcfsPolicyUpdateServiceEndpointCsv
+                  key: password
+            - name: NcfsPolicyUpdateServiceUsername
               valueFrom:
                 secretKeyRef:
                   name: ncfspolicyupdateserviceref
-                  key: NcfsPolicyUpdateServiceEndpointCsv
-            {{- $root := . }}
-            {{- range $ref, $values := .Values.policymanagementapi.secrets }}
-            {{- range $key, $value := $values }}
-            - name: {{ $ref }}_{{ $key }}
+                  key: username
+            - name: NcfsPolicyUpdateServicePassword
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "policy-management-api.fullname" $root }}-{{ $ref | lower }}
-                  key: {{ $key }}
+                  name: ncfspolicyupdateserviceref
+                  key: password
+            {{- range $key, $value := .Values.policymanagementapi.configuration }}
+            - name: {{ $key }}
+              value: {{ $value }}
             {{- end }}
-            {{- end }}
-          resources:
-{{ toYaml .Values.policymanagementapi.resources | indent 12 }}
-    {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-{{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- with .Values.policymanagementapi.nodeSelector }}
-      nodeSelector:
-{{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- with .Values.policymanagementapi.affinity }}
-      affinity:
-{{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- with .Values.policymanagementapi.tolerations }}
-      tolerations:
-{{ toYaml . | indent 8 }}
-    {{- end }}

@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.transactionqueryservice.fullnameOverride }}
+  labels:
+    app: {{ template "transactionqueryservice.name" . }}
+    chart: {{ template "transactionqueryservice.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.transactionqueryservice.service.type }}
+  ports:
+    - port: {{ .Values.transactionqueryservice.service.port }}
+      targetPort: {{ .Values.transactionqueryservice.service.port }}
+      protocol: TCP
+  selector:
+    app: {{ template "transactionqueryservice.name" . }}
+    release: {{ .Release.Name }}

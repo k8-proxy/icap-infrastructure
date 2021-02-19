@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: icap-service
+  labels:
+    app: {{ .Values.icapservice.applabel }}
+spec:
+  replicas: {{ .Values.icapservice.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.icapservice.applabel }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.icapservice.applabel }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: {{ .Values.prometheus.metricspath }}
+        prometheus.io/port: "{{ .Values.prometheus.metricsport }}"        
+    spec:
+      containers:
+        - name: icap-service
+          image: {{ .Values.imagestore.icapservice.registry}}{{ .Values.imagestore.icapservice.repository }}:{{ .Values.imagestore.icapservice.tag }}
+          ports:
+            - containerPort: 1344
+            - containerPort: 1345
+          envFrom:
+          - configMapRef:
+              name: icap-service-config
+          - configMapRef:
+              name: icap-proxy-app-config
+          {{- if .Values.queue.messagebrokersecret }}
+          env:
+            - name: MBUsername
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.queue.messagebrokersecret }}
+                  key: username
+            - name: MBPassword
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.queue.messagebrokersecret }}
+                  key: password
+          {{- end }}
+          volumeMounts:
+            - name: source-vol
+              mountPath: {{ .Values.volumemountpath.source }}
+            - name: target-vol
+              mountPath: {{ .Values.volumemountpath.target }}
+            - name: tls-config-vol
+              mountPath: /usr/local/c-icap/cert
+              readOnly: true
+            - name: c-icap-conf-vol
+              mountPath: /usr/local/c-icap/conf 
+              readOnly: true
+            - name: gw-rebuild-conf-vol
+              mountPath: /usr/local/c-icap/rebuild 
+              readOnly: true  
+        - name: icap-service-metrics-exporter
+          image: {{ .Values.imagestore.icapservicemetricsexporter.registry }}{{ .Values.imagestore.icapservicemetricsexporter.repository }}:{{ .Values.imagestore.icapservicemetricsexporter.tag }}
+          ports:
+            - containerPort: {{ .Values.prometheus.metricsport }}
+          env:
+            - name: ICAP_HOST
+              value: {{ .Values.icapservicemetricsexporter.icaphost }}
+            - name: ICAP_PORT
+              value: "{{ .Values.icapservicemetricsexporter.icapport }}"
+            - name: SERVICE
+              value: {{ .Values.icapservicemetricsexporter.service }}
+            - name: METRICS_PORT
+              value: "{{ .Values.prometheus.metricsport }}"
+      imagePullSecrets:
+        - name: adaptation-registry-credential
+      volumes:
+        - name: source-vol
+          persistentVolumeClaim:
+            claimName: glasswallsource-pvc
+        - name: target-vol
+          persistentVolumeClaim:
+            claimName: glasswalltarget-pvc
+        - name: tls-config-vol
+          secret:
+            secretName: icap-service-tls-config
+        - name: c-icap-conf-vol
+          configMap:
+            name: c-icap-service-config            
+        - name: gw-rebuild-conf-vol
+          configMap:
+            name: gw-rebuild-config             

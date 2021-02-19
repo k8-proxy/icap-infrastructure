@@ -8,6 +8,7 @@ spec:
   selector:
     app: {{ .Values.managementui.deployment.name }}
   ports:
-    - port: {{ .Values.managementui.service.port }}
-      targetPort: {{ .Values.managementui.deployment.port }}
-  type: LoadBalancer
+  - nodePort: {{ .Values.managementui.service.nodeport }} 
+    port: {{ .Values.managementui.service.port }}
+    targetPort: {{ .Values.managementui.deployment.port }}
+  type: NodePort

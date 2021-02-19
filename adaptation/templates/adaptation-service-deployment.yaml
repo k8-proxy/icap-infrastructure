@@ -11,6 +11,10 @@ spec:
     metadata:
       labels:
         app: {{ .Values.adaptationservice.name }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: {{ .Values.prometheus.metricspath }}
+        prometheus.io/port: "{{ .Values.prometheus.metricsport }}"
     spec:
       serviceAccountName: {{ .Values.serviceAccount.adaptationname  }}
       tolerations:
@@ -20,7 +24,9 @@ spec:
         effect: "NoSchedule"  
       containers:
       - name: adaptation-service
-        image: {{ .Values.imagestore.adaptationservice.registry}}{{ .Values.imagestore.adaptationservice.repository }}:{{ .Values.imagestore.adaptationservice.tag }}
+        image: {{ .Values.imagestore.adaptationservice.registry }}{{ .Values.imagestore.adaptationservice.repository }}:{{ .Values.imagestore.adaptationservice.tag }}
+        ports:
+        - containerPort: {{ .Values.prometheus.metricsport }}
         env:
         - name: POD_NAMESPACE
           valueFrom:
@@ -28,24 +34,28 @@ spec:
               fieldPath: metadata.namespace
         - name: AMQP_URL
           value: {{ .Values.adaptationservice.amqpurl }}
+        - name: METRICS_PORT
+          value: "{{ .Values.prometheus.metricsport }}"
+        - name: PUSHGATEWAY_ENDPOINT
+          value: {{ .Values.prometheus.pushgatewayendpoint }}
         - name: INPUT_MOUNT
           value: {{ .Values.volumemountpath.source }}
         - name: OUTPUT_MOUNT
           value: {{ .Values.volumemountpath.target }}
         - name: REQUEST_PROCESSING_IMAGE
-          value: {{ .Values.imagestore.requestprocessing.registry}}{{ .Values.imagestore.requestprocessing.repository }}:{{ .Values.imagestore.requestprocessing.tag }}
+          value: {{ .Values.imagestore.requestprocessing.registry }}{{ .Values.imagestore.requestprocessing.repository }}:{{ .Values.imagestore.requestprocessing.tag }}
         - name: REQUEST_PROCESSING_TIMEOUT
           value: {{ .Values.icapserviceconfig.processingtimeoutduration }}
         {{- if .Values.queue.messagebrokersecret }}
         - name: MESSAGE_BROKER_USER
           valueFrom:
             secretKeyRef:
-              name: rabbitcredentialssecret
+              name: {{ .Values.queue.messagebrokersecret }}
               key: username
         - name: MESSAGE_BROKER_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: rabbitcredentialssecret
+              name: {{ .Values.queue.messagebrokersecret }}
               key: password
         {{- end }}          
         - name: ADAPTATION_REQUEST_QUEUE_HOSTNAME
@@ -60,10 +70,20 @@ spec:
           value: {{ .Values.queue.transactionevent.hostname}}
         - name: TRANSACTION_EVENT_QUEUE_PORT
           value: {{ .Values.queue.transactionevent.port }}
+        - name: CPU_LIMIT
+          value: "{{ .Values.requestprocessingservice.cpulimit }}"
+        - name: CPU_REQUEST
+          value: "{{ .Values.requestprocessingservice.cpurequest }}"
+        - name: MEMORY_LIMIT
+          value: "{{ .Values.requestprocessingservice.memorylimit }}"
+        - name: MEMORY_REQUEST
+          value: "{{ .Values.requestprocessingservice.memoryrequest }}"
         resources:
           limits:
-            cpu: 1
+            cpu: "1"
             memory: 500Mi
           requests:
-            cpu: 200m
-            memory: 200Mi
+            cpu: "0.5"
+            memory: 100Mi
+      imagePullSecrets:
+        - name: adaptation-registry-credential

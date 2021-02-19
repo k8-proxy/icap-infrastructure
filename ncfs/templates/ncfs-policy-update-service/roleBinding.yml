@@ -4,7 +4,7 @@ metadata:
   name: {{ template "ncfs-policy-update-service.fullname" . }}-rolebinding
 subjects:
 - kind: ServiceAccount
-  name: {{ template "ncfs-policy-update-service.fullname" . }}-service-account
+  name: ncfs-policy-update-service-account
   namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole #this must be Role or ClusterRole

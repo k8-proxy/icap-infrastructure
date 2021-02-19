@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.beta.kubernetes.io/azure-dns-label-name: management-ui
+  name: {{ .Values.managementui.service.name }}
+spec:
+  selector:
+    app: {{ .Values.managementui.deployment.name }}
+  ports:
+  - nodePort: {{ .Values.managementui.service.nodeport }} 
+    port: {{ .Values.managementui.service.port }}
+    targetPort: {{ .Values.managementui.deployment.port }}
+  type: NodePort

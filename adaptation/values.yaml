@@ -1,4 +1,10 @@
 environment:
+rabbitmqService:
+  name: rabbitmq-service
+  port: 5672
+  component: rabbitmq
+  app: taskQueue
+  key: rabbitmq-cluster-operator
 serviceAccount:
   adaptationname: adaptation-service-sa
   archiveadaptationname: archive-adaptation-service-sa
@@ -7,8 +13,12 @@ serviceAccount:
 volumemountpath:
   source: "/var/source"
   target: "/var/target"
+  transactions: /mnt/transactions
+prometheus:
+  metricsport: 8081
+  metricspath: /metrics
+  pushgatewayendpoint: "http://pushgateway-prometheus-pushgateway:9091/metrics"
 queue:
-  messagebrokersecret: "rabbitcredentialssecret"
   host:
     url: "rabbitmq-service" # this should be deprecated in preference to queue specific hostname
     port: "\"5672\"" # this should be deprecated in preference to queue specific port
@@ -27,7 +37,6 @@ queue:
     port: "\"5672\""
 adaptationservice:
   name: adaptation-service
-  namespace: icap-adaptation
   replicas: 1
   amqpurl: "amqp://guest:guest@rabbitmq-service:5672/"
   rolename: adaptation-service-role
@@ -39,14 +48,58 @@ archiveadaptationservice:
   exchange: adaptation-exchange
   rolename: archive-adaptation-service-role
 icapservice:
-  name: mvp-icap-service
+  name: icap-service
   applabel: adaptation
   replicas: 1
   port: 1344
   tlsport: 1345
-  enableFileId: false
+  enableFileId: true
 icapserviceconfig:
   processingtimeoutduration: 00:01:00
+cicapservice:
+  conf:
+    PidFile: /var/run/c-icap/c-icap.pid
+    CommandsSocket: /var/run/c-icap/c-icap.ctl
+    Timeout: 300
+    MaxKeepAliveRequests: 100
+    KeepAliveTimeout: 600
+    StartServers: 3
+    MaxServers: 10
+    MinSpareThreads: 10
+    MaxSpareThreads: 20
+    ThreadsPerChild: 10
+    MaxRequestsPerChild: 0
+    Port: 1344
+    TlsPort: 1345 tls-method=TLSv1_2 cert=/usr/local/c-icap/cert/tls.crt key=/usr/local/c-icap/cert/tls.key
+    ServerAdmin: you@your.address
+    ServerName: YourServerName
+    TmpDir: /var/tmp
+    MaxMemObject: 131072
+    DebugLevel: 10
+    Pipelining: !!string on
+    SupportBuggyClients: !!string off
+    ModulesDir: /usr/local/c-icap/lib/c_icap
+    ServicesDir: /usr/local/c-icap/lib/c_icap
+    TemplateDir: /usr/local/c-icap/share/c_icap/templates/
+    TemplateDefaultLanguage: en
+    LoadMagicFile: /usr/local/c-icap/etc/c-icap.magic
+    RemoteProxyUsers: !!string off
+    RemoteProxyUserHeader: X-Authenticated-User
+    RemoteProxyUserHeaderEncoded: !!string on
+    ServerLog: /proc/self/fd/1
+    AccessLog: /proc/self/fd/1
+    Service: echo srv_echo.so
+    Include: gw_rebuild.conf
+  rebuild:
+    Service: gw_rebuild gw_rebuild.so
+    gw_rebuild.MaxObjectSize: 2000M
+    gw_rebuild.Allow204Responses: !!string on
+    gw_rebuild.ProxyAppLocation: /usr/local/bin/cloud-proxy-app
+    gw_rebuild.DataCleanup: !!string on
+icapservicemetricsexporter:
+  icaphost: localhost
+  icapport: 1344
+  service: info?view=text
 podjanitor:
   name: pod-janitor
   namespace: icap-adaptation
@@ -65,36 +118,93 @@ policyupdateservice:
   rolename: policy-update-service-role
 requestprocessingservice:
   configmapname: request-processing-config
+  cpulimit: 1
+  cpurequest: 0.2
+  memorylimit: 10000Mi
+  memoryrequest: 250Mi
+transactionqueryservice:
+  fullnameOverride: transaction-query-service
+  replicaCount: 1
+  imagePullSecrets: []
+  service:
+    type: ClusterIP
+    port: 443
+  deployment:
+    containerPort: 443
+  probes:
+    enabled: false
+  ingress:
+    enabled: false
+    annotations: {}
+    path: /
+    tls: []
+  volumes:
+    transactionstore:
+      shareName: transactions
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+transactionstore:
+  shareName: transactions
+  storage: 3Gi
 imagestore:
   requestprocessing:
     registry: ""
     repository: glasswallsolutions/icap-request-processing
-    tag: main-0c9d946
+    tag: main-ffd2a52
   adaptationservice:
     registry: ""
     repository: glasswallsolutions/icap-adaptation-service
-    tag: main-1d8a40a
+    tag: main-718a5ce
   podjanitor:
     registry: ""
     repository: glasswallsolutions/pod-janitor
-    tag: main-5ce5e69
+    tag: main-b5f9752
   icapservice:
     registry: ""
     repository: glasswallsolutions/mvp-icap-service
-    tag: main-5e3bd61
+    tag: main-550d0fc
+  icapservicemetricsexporter:
+    registry: ""
+    repository: glasswallsolutions/icap-service-metrics-exporter
+    tag: main-6a2785e
   eventsubmission:
     registry: ""
     repository: glasswallsolutions/event-submission-service
-    tag: main-685fa96
+    tag: main-de67dec
   policyupdate:
     registry: ""
     repository: glasswallsolutions/policy-update-service
-    tag: main-697495a
+    tag: main-5a6d7a1
   archiveadaptationservice:
     registry: ""
     repository: glasswallsolutions/archive-adaptation-service
-    tag: main-928c171
+    tag: main-ddf071a
   archiveprocessingservice:
     registry: ""
     repository: glasswallsolutions/archive-processing-service
-    tag: main-77832a9
+    tag: main-2a4936b
+  transactionqueryservice:
+    registry: ""
+    repository: glasswallsolutions/transaction-query-service
+    tag: main-bd47d0a
+secrets:
+  containerregistry:
+    dockerconfigjson: "<<https://gw-icap-keyvault.vault.azure.net/secrets/az-registry-dockerconfig>>"
+  transactionqueryservice:
+    transactionqueryservicesecret:
+      username: "<<https://gw-tfstate-Vault.vault.azure.net/secrets/transactionQueryServiceUsername>>"
+      password: "<<https://gw-tfstate-Vault.vault.azure.net/secrets/transactionQueryServicePassword>>"
+  policyupdateservice:
+    policyupdateservicesecret:
+      username: "<<https://gw-tfstate-Vault.vault.azure.net/secrets/policyUpdateServiceUsername>>"
+      password: "<<https://gw-tfstate-Vault.vault.azure.net/secrets/policyUpdateServicePassword>>"
+  transactionstore:
+    transactionstoresecret:
+      azurestorageaccountname: "<<https://gw-tfstate-Vault.vault.azure.net/secrets/transactionStoreAccountName>>"
+      azurestorageaccountkey: "<<https://gw-tfstate-Vault.vault.azure.net/secrets/transactionStoreAccountKey>>"
+  mvpicapservice:
+    tls:
+      tlsCert: "<<https://gw-tfstate-Vault.vault.azure.net/secrets/mvpicapserviceTlsCert>>"
+      tlsKey: "<<https://gw-tfstate-Vault.vault.azure.net/secrets/mvpicapserviceTlsKey>>"

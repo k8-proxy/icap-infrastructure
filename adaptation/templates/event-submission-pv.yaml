@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-event-submission
+  labels:
+    usage: pv-event-submission
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: {{ .Values.transactionstore.storage }}
+    storage: 3Gi
+  hostPath:
+    path: /var/local/rancher/host/c/transactionquery
+    type: ""
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem

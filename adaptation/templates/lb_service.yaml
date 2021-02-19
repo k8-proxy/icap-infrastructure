@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   annotations:
-    service.beta.kubernetes.io/azure-dns-label-name: icap-client
+    service.beta.kubernetes.io/azure-dns-label-name: icap-client-main
   name: frontend-icap-lb
 spec:
   type: LoadBalancer
@@ -15,4 +15,3 @@ spec:
     targetPort: 1345
   selector:
     app: adaptation
----

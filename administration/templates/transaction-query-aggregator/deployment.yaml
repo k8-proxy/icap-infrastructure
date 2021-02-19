@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "transactionqueryaggregator.fullname" . }}
+  labels:
+    {{- include "transactionqueryaggregator.labels" . | nindent 4 }}
+spec:
+  revisionHistoryLimit: 0
+  replicas: {{ .Values.transactionqueryaggregator.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "transactionqueryaggregator.matchLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "transactionqueryaggregator.labels" . | nindent 8 }}
+      annotations:
+        buildID: {{ .Values.buildID | default "" | quote }}
+    spec:
+      containers: 
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.imagestore.transactionqueryaggregator.registry }}{{ .Values.imagestore.transactionqueryaggregator.repository }}:{{ .Values.imagestore.transactionqueryaggregator.tag }}"
+          ports:
+            - name: http
+              containerPort: {{ .Values.transactionqueryaggregator.deployment.containerPort }}
+              protocol: TCP
+          {{- if .Values.transactionqueryaggregator.probes.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          {{- end }}
+          env:
+            - name: TransactionQueryServiceEndpointCsv
+              value: {{ .Values.transactionqueryaggregator.configuration.TransactionQueryServiceEndpointCsv }}
+            - name: ASPNETCORE_URLS
+              value: {{ .Values.transactionqueryaggregator.configuration.ASPNETCORE_URLS }}
+          envFrom:
+          - secretRef:
+              name: transactionqueryserviceref   
+          resources:
+{{ toYaml .Values.transactionqueryaggregator.resources | indent 12 }}
+    {{- with .Values.transactionqueryaggregator.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.transactionqueryaggregator.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.transactionqueryaggregator.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+      imagePullSecrets:
+        - name: transactionqueryaggregator-registry-credential

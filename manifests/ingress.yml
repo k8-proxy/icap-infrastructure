@@ -1,0 +1,47 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/configuration-snippet: "if ($scheme = https) {   \n
+      \ add_header  Strict-Transport-Security \"max-age=0;\";  \n}\n"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  name: nginx-icap
+  namespace: icap-adaptation
+spec:
+  rules:
+  - host: dataport.emma.msrb.org.glasswall-icap.com
+    http:
+      paths:
+      - backend:
+          serviceName: reverse-proxy-reverse-proxy-nginx
+          servicePort: 80
+        path: /
+        pathType: ImplementationSpecific
+  - host: www.msrb.org.glasswall-icap.com
+    http:
+      paths:
+      - backend:
+          serviceName: reverse-proxy-reverse-proxy-nginx
+          servicePort: 80
+        path: /
+        pathType: ImplementationSpecific
+  - host: emma.msrb.org.glasswall-icap.com
+    http:
+      paths:
+      - backend:
+          serviceName: reverse-proxy-reverse-proxy-nginx
+          servicePort: 80
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - dataport.emma.msrb.org.glasswall-icap.com
+    secretName: cert
+  - hosts:
+    - www.msrb.org.glasswall-icap.com
+    - msrb.org.glasswall-icap.com
+    secretName: cert1
+  - hosts:
+    - emma.msrb.org.glasswall-icap.com
+    secretName: cert2

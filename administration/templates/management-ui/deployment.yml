@@ -20,10 +20,16 @@ spec:
             - name: TRANSACTION_EVENT_API_URL
               value: {{ .Values.managementui.config.transactionEventApiUrl }}
             - name: POLICY_MANAGEMENT_API_URL
-              value: {{ .Values.managementui.config.policyManagementApiUrl }}          
+              value: {{ .Values.managementui.config.policyManagementApiUrl }}
+            - name: IDENTITY_MANAGEMENT_API_URL
+              value: {{ .Values.managementui.config.identityManagementApiUrl }}         
+            - name: NODE_TLS_REJECT_UNAUTHORIZED
+              value: "0" 
           ports:
             - containerPort: {{ .Values.managementui.deployment.port }}
           resources:
             limits:
               memory: "128Mi"
               cpu: "500m"
+      imagePullSecrets:
+        - name: management-ui-registry-credential

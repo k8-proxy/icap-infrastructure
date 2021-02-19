@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "transactionqueryservice.fullname" . }}-event-api
+  labels:
+    app: {{ template "transactionqueryservice.name" . }}
+    chart: {{ template "transactionqueryservice.chart" . }}
+    draft: {{ .Values.draft | default "draft-app" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  revisionHistoryLimit: 0
+  replicas: {{ .Values.transactionqueryservice.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "transactionqueryservice.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "transactionqueryservice.name" . }}
+        draft: {{ .Values.draft | default "draft-app" }}
+        release: {{ .Release.Name }}
+      annotations:
+        buildID: {{ .Values.buildID | default "" | quote }}
+        prometheus.io/scrape: "true"
+        prometheus.io/path: {{ .Values.prometheus.metricspath }}
+        prometheus.io/port: "{{ .Values.prometheus.metricsport }}"
+    spec:
+      volumes:
+        - name: {{ .Values.transactionstore.shareName }}
+          persistentVolumeClaim:
+            claimName: pvc-transaction-query-service
+      containers:
+        - name: {{ .Chart.Name }}
+          volumeMounts:
+            - name: {{ .Values.transactionstore.shareName }}
+              mountPath: /mnt/stores/{{ .Values.transactionstore.shareName }}
+              readOnly: true
+          image: "{{ .Values.imagestore.transactionqueryservice.registry }}{{ .Values.imagestore.transactionqueryservice.repository }}:{{ .Values.imagestore.transactionqueryservice.tag }}"
+          ports:
+            - name: http
+              containerPort: {{ .Values.transactionqueryservice.deployment.containerPort }}
+              protocol: TCP
+            - name: metrics
+              containerPort: {{ .Values.prometheus.metricsport }}
+              protocol: TCP
+          {{- if .Values.transactionqueryservice.probes.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          {{- end }}
+          env:
+            - name: ASPNETCORE_URLS
+              value: "https://+:443;http://+:{{ .Values.prometheus.metricsport }}"
+            - name: username
+              valueFrom:
+                secretKeyRef:
+                  name: transactionqueryservicesecret
+                  key: username
+            - name: password
+              valueFrom:
+                secretKeyRef:
+                  name: transactionqueryservicesecret
+                  key: password
+          resources:
+{{ toYaml .Values.transactionqueryservice.resources | indent 12 }}
+    {{- with .Values.transactionqueryservice.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.transactionqueryservice.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.transactionqueryservice.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.transactionqueryservice.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

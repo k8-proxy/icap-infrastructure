@@ -11,26 +11,28 @@ spec:
     metadata:
       labels:
         app: {{ .Values.eventsubmissionservice.name }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: {{ .Values.prometheus.metricspath }}
+        prometheus.io/port: "{{ .Values.prometheus.metricsport }}"
     spec:
-      tolerations:
-      - key: "use"
-        operator: "Equal"
-        value: "main-app"
-        effect: "NoSchedule"  
+      volumes:
+        - name: {{ .Values.transactionstore.shareName }}
+          persistentVolumeClaim:
+            claimName: pvc-event-submission
       containers:
       - name: event-submission-service
+        volumeMounts:
+          - name: {{ .Values.transactionstore.shareName }}
+            mountPath: {{ .Values.volumemountpath.transactions }}
         image: {{ .Values.imagestore.eventsubmission.registry}}{{ .Values.imagestore.eventsubmission.repository }}:{{ .Values.imagestore.eventsubmission.tag }}
+        ports:
+        - containerPort: {{ .Values.prometheus.metricsport }}
         env:
-        - name: ACCOUNT_NAME
-          valueFrom:
-            secretKeyRef:
-              name: transactionstoresecret
-              key: accountName
-        - name: ACCOUNT_KEY
-          valueFrom:
-            secretKeyRef:
-              name: transactionstoresecret
-              key: accountKey
+        - name: TRANSACTION_STORE_ROOT_PATH
+          value: {{ .Values.volumemountpath.transactions }}
+        - name: METRICS_PORT
+          value: "{{ .Values.prometheus.metricsport }}"
         - name: TRANSACTION_EVENT_QUEUE_HOSTNAME
           value: {{ .Values.queue.transactionevent.hostname}}
         - name: TRANSACTION_EVENT_QUEUE_PORT
@@ -39,11 +41,13 @@ spec:
         - name: MESSAGE_BROKER_USER
           valueFrom:
             secretKeyRef:
-              name: rabbitcredentialssecret
+              name: {{ .Values.queue.messagebrokersecret }}
               key: username
         - name: MESSAGE_BROKER_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: rabbitcredentialssecret
+              name: {{ .Values.queue.messagebrokersecret }}
               key: password
         {{- end }}               
+      imagePullSecrets:
+        - name: adaptation-registry-credential

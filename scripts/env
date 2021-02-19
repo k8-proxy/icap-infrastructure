@@ -1,0 +1,10 @@
+# You can uncomment and change the value as desired for the build
+
+#DOCKER_USERNAME=***
+#DOCKER_PASSWORD=***
+#DOCKER_EMAIL=***
+#MONITORING_IP=91.109.26.22
+#ICAP_REPO=k8-proxy/icap-infrastructure
+#ICAP_BRANCH=k8-develop
+#MANAGEMENT_IMAGE=glasswall/icap-management-ui
+#MANAGEMENT_TAG=main-latest

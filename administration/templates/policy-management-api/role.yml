@@ -1,0 +1,8 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: policy-management-api-role
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["update", "create", "get"] 

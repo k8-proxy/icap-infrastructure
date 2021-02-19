@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.transactionqueryaggregator.name }}
+  labels:
+    {{- include "transactionqueryaggregator.labels" . | nindent 4 }}
+{{- if .Values.transactionqueryaggregator.service.labels }}
+{{ toYaml .Values.transactionqueryaggregator.service.labels | indent 4}}
+{{- end }}    
+spec:
+  type: {{ .Values.transactionqueryaggregator.service.type }}
+  ports:
+    - port: {{ .Values.transactionqueryaggregator.service.port }}
+      targetPort: {{ .Values.transactionqueryaggregator.service.port }}
+      protocol: TCP
+  selector:
+    {{- include "transactionqueryaggregator.matchLabels" . | nindent 4 }}

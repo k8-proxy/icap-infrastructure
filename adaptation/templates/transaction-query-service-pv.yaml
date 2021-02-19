@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-transaction-query-service
+  labels:
+    usage: pv-transaction-query-service
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: {{ .Values.transactionstore.storage }}
+  hostPath:
+    path: /var/local/rancher/host/c/transactionquery
+    type: ""
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem

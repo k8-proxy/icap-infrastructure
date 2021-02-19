@@ -13,6 +13,10 @@ spec:
     metadata:
       labels:
         app: {{ .Values.policyupdateservice.applabel }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: {{ .Values.prometheus.metricspath }}
+        prometheus.io/port: "{{ .Values.prometheus.metricsport }}"        
     spec:
       serviceAccountName: {{ .Values.serviceAccount.policyupdatename }}
       containers:     
@@ -20,6 +24,7 @@ spec:
         image: {{ .Values.imagestore.policyupdate.registry }}{{ .Values.imagestore.policyupdate.repository }}:{{ .Values.imagestore.policyupdate.tag }}
         ports:
         - containerPort: {{ .Values.policyupdateservice.port }}
+        - containerPort: {{ .Values.prometheus.metricsport }}
         env:
         - name: NAMESPACE
           valueFrom:
@@ -27,6 +32,8 @@ spec:
               fieldPath: metadata.namespace
         - name: LISTENING_PORT
           value: "{{ .Values.policyupdateservice.port }}"
+        - name: METRICS_PORT
+          value: "{{ .Values.prometheus.metricsport }}"
         - name: CONFIGMAP_NAME
           value: {{ .Values.requestprocessingservice.configmapname }}
         - name: USERNAME
@@ -39,3 +46,5 @@ spec:
             secretKeyRef:
               name: policyupdateservicesecret
               key: password
+      imagePullSecrets:
+        - name: adaptation-registry-credential

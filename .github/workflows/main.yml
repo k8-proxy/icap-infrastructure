@@ -1,0 +1,131 @@
+name: deploy_icap
+env:
+  REPOSITORY: glasswallsolutions
+  IMAGE: k8-proxy-icap-management-ui
+on: 
+  workflow_dispatch:
+    inputs:
+      instance_name:
+        description: EC2 instance name
+        default: icap-server
+        required: true
+      management_ui_repo:
+        description: management UI repo
+        default: filetrust/icap-management-ui
+        required: true
+      management_ui_branch:
+        description: ICAP management UI branch to use. Leave blank to use default management UI image
+        default: ''
+        required: false
+      icap_repo:
+        description: icap-infrastructure repo to use
+        default: k8-proxy/icap-infrastructure
+        required: true
+      icap_branch:
+        description: icap-infrastructure branch to use
+        default: k8-develop
+        required: true
+      icap_ami:
+        description: Base Ubuntu 20 AMI ID
+        default: ami-022e8cc8f0d3c52fd
+        required: true
+      aws_region:
+        description: AWS region used for deployment
+        default: eu-west-1
+        required: true
+      monitoring_ip:
+        description: IP address of Monitoring server
+        default: 91.109.26.22
+        required: true
+
+jobs:
+  deploy-icap-server:
+    name: Deploy ICAP server
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        if: github.event.inputs.management_ui_branch != ''
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ github.event.inputs.management_ui_repo }}
+          ref: ${{ github.event.inputs.management_ui_branch }}
+
+      - name: Docker Login
+        if: github.event.inputs.management_ui_branch != ''
+        uses: docker/login-action@v1.6.0
+        with:
+          username: k8serviceaccount
+          password: ${{ secrets.ICAPDOCKERSECRET }}
+      
+      - name: Build and Push Docker Image
+        if: github.event.inputs.management_ui_branch != ''
+        run: |
+          BRANCH=$(echo ${{ github.event.inputs.management_ui_branch }} | cut -d"/" -f3)
+          docker build -f server/Dockerfile -t ${{ env.REPOSITORY }}/${{ env.IMAGE }}:${BRANCH}-${GITHUB_SHA::7} -t ${{ env.REPOSITORY }}/${{ env.IMAGE }}:${BRANCH}-latest .
+          docker push ${{ env.REPOSITORY }}/${{ env.IMAGE }}
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ github.event.inputs.aws_region }}
+
+      - name: Create ec2 instance
+        id: deploy
+        run: |
+          # Create an instance with name "<management-ui-branch>-icap-server"
+          MANAGEMENT_UI_REPO=${{ github.event.inputs.management_ui_repo }}
+          MANAGEMENT_UI_BRANCH=${{ github.event.inputs.management_ui_branch }}
+          MANAGEMENT_UI_BRANCH=${MANAGEMENT_UI_BRANCH:-default}
+          ICAP_REPO=${{ github.event.inputs.icap_repo }}
+          ICAP_BRANCH=${{ github.event.inputs.icap_branch }}
+          ami_id=${{ github.event.inputs.icap_ami }}
+          INSTANCE_NAME=${{ github.event.inputs.instance_name }}
+          result=$(aws ec2 run-instances --image-id $ami_id --count 1 --instance-type t2.xlarge --key-name packer --security-group-ids sg-0120400d5eefb0b9e --tag-specifications "ResourceType=instance, Tags=[{Key=Name,Value=${INSTANCE_NAME}}, {Key=Team, Value=k8-proxy/icap-infrastructure}, {Key=Owner, Value=githubactionAMIpacker}, {Key=Delete,Value=No},{Key=Scope,Value=icap-server}, {Key=AMI_ID, Value=$ami_id},{Key=management_ui_branch,Value=${MANAGEMENT_UI_BRANCH}},{Key=management_ui_repo,Value=${MANAGEMENT_UI_REPO}},{Key=icap_repo,Value=${ICAP_REPO}},{Key=icap_branch,Value=${ICAP_BRANCH}}]" --block-device-mappings "DeviceName=/dev/sda1,Ebs={DeleteOnTermination=true,VolumeSize=20,VolumeType=gp2}")
+          instance_id=$(echo $result | jq -r ".Instances[0].InstanceId")
+          echo "Creating new instance $instance_id with $ami_id AMI"
+          sleep 2m
+          instance_description=$(aws ec2 describe-instances --instance-ids $instance_id)
+          instance_ip=$(echo $instance_description | jq -r ".Reservations[0].Instances[0].PublicIpAddress")
+          echo "$instance_ip is the instance IP address"
+          echo ::set-output name=instance_ip::$instance_ip
+          echo ::set-output name=instance_id::$instance_id
+
+
+      - name: Upgrade ICAP and Management UI
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ steps.deploy.outputs.instance_ip }}
+          username: ubuntu
+          key: '${{ secrets.SSH_KEY }}'
+          script: |
+            set -e
+            BRANCH=${{ github.event.inputs.management_ui_branch }}
+            ICAP_REPO=${{ github.event.inputs.icap_repo }}
+            GITHUB_SHA=${{ github.sha }}
+            TAG=${BRANCH}-${GITHUB_SHA::7}
+            mkdir ~/temp/ && cd temp/
+            git clone https://github.com/${ICAP_REPO}.git && cd icap-infrastructure && git checkout ${{ github.event.inputs.icap_branch }} && cd scripts
+            cat > env <<EOF
+            DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} 
+            DOCKER_PASSWORD=${{ secrets.DOCKER_PASSWORD }}
+            DOCKER_EMAIL=${{ secrets.DOCKER_EMAIL }}
+            MONITORING_IP=${{ github.event.inputs.monitoring_ip }}
+            MONITORING_USER=${{ secrets.MONITORING_USER }}
+            MONITORING_PASSWORD=${{ secrets.MONITORING_PASSWORD }}
+            ICAP_REPO=${{ github.event.inputs.icap_repo }}
+            ICAP_BRANCH=${{ github.event.inputs.icap_branch }}
+            MANAGEMENT_IMAGE=${{ env.REPOSITORY }}/${{ env.IMAGE }}
+            MANAGEMENT_TAG=${TAG}
+            EOF
+            chmod +x setup.sh
+            ./setup.sh
+            rm -rf env
+      
+      - name: Delete if deployment fails
+        if: ${{ failure() }}
+        run: |
+          INSTANCE_ID=${{ steps.deploy.outputs.instance_id }}
+          echo "Failed to deploy ICAP server, deleting the instance"
+          aws ec2 terminate-instances --instance-ids $INSTANCE_ID || true

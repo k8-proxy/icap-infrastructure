@@ -1,4 +1,6 @@
 environment:
+prometheus:
+  metricsport: 8081
 referencencfs:
   fullNameOverride: reference-ncfs
   applabel: reference-ncfs
@@ -13,14 +15,14 @@ referencencfs:
   # - name: myRegistryKeySecretName
   service:
     type: NodePort
-    port: 80
+    port: 443
   serviceAccount:
     name: reference-ncfs-sa
     rolename: reference-ncfs-role
   configuration:
     ShareName: transactions
   deployment:
-    containerPort: 80
+    containerPort: 443
   probes:
     enabled: false
   ingress:
@@ -124,8 +126,8 @@ imagestore:
   ncfspolicyupdateservice:
     registry: ""
     repository: glasswallsolutions/ncfs-policy-update-service
-    tag: main-209dd73
+    tag: main-8ff7507
   referencencfs:
     registry: ""
     repository: glasswallsolutions/reference-ncfs
-    tag: main-890e2a0
+    tag: main-e0bfd42

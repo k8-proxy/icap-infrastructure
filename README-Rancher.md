@@ -88,6 +88,12 @@ kubectl create -n icap-adaptation secret docker-registry regcred	\
 	--docker-email=<email address>
 ```
 
+Create secret with rabbitmq username and password
+
+```
+kubectl create -n icap-adaptation secret generic transactionstoresecret --from-literal=accountName=guest --from-literal=accountKey=guest
+```
+
 Install the cluster components
 ```
 helm install . --namespace icap-adaptation --generate-name
@@ -138,7 +144,7 @@ In order to get the credentials for the AKS cluster you must run the command bel
 az aks get-credentials --name gw-icap-aks --resource-group gw-icap-aks-deploy
 ```
 
-*all commands below should be run from the root directory of the repo "aks-deployment-icap"*
+*all commands below should be run from the root directory of the repo "icap-infrastructure"*
 
 Create the Kubernetes namespace
 ```
@@ -157,18 +163,45 @@ kubectl create -n icap-adaptation secret docker-registry regcred	\
 	--docker-email=<email address>
 ```
 
+Create Self-signed TLS Certificate
+```
+openssl req -newkey rsa:2048 -nodes -keyout  tls.key -x509 -days 365 -out certificate.crt
+```
+
+Create TLS Certificate Secret
+```
+kubectl create secret tls icap-service-tls-config --namespace icap-adaptation --key tls.key --cert certificate.crt
+```
+
+Create Transaction Store Secret
+
+```
+kubectl create -n icap-adaptation secret generic transactionstoresecret --from-literal=accountName=guest --from-literal=accountKey=guest
+```
+
+Create Policy Update Service Secret
+```
+kubectl create -n icap-adaptation secret generic policyupdateservicesecret \
+   --from-literal=username=policy-management \
+   --from-literal=password='long-password'
+```
+
 Install the cluster components
 ```
-helm install ./adaptation --namespace icap-adaptation --generate-name
+helm upgrade --install --namespace icap-adaptation rabbitmq ./rabbitmq
+helm upgrade --install --namespace icap-adaptation icap ./adaptation
 ```
 
 The cluster's services should now be deployed (Please note the adaptation service can restart several times before it is "running")
 ```
 > kubectl get pods -n icap-adaptation
-NAME                                 READY   STATUS    RESTARTS   AGE
-adaptation-service-64cc49f99-kwfp6   1/1     Running   0          3m22s
-mvp-icap-service-b7ddccb9-gf4z6      1/1     Running   0          3m22s
-rabbitmq-controller-747n4            1/1     Running   0          3m22s
+NAME                                          READY   STATUS      RESTARTS   AGE
+rabbitmq-controller-s2swm                     1/1     Running     0          6m28s
+policy-update-service-7476ccf67b-684xd        1/1     Running     0          3m24s
+mvp-icap-service-5cc549bbd6-lqnvn             1/1     Running     0          3m24s
+event-submission-service-5c58877cbd-j828h     1/1     Running     4          3m24s
+archive-adaptation-service-76d7ffd97b-txvz2   1/1     Running     4          3m24s
+adaptation-service-65654457b4-q8xcr           1/1     Running     4          3m25s
 ```
 
 Setup ingress for icap server
@@ -186,6 +219,7 @@ Add below lines to the tcp_services.yaml:
 ```
 data:
   1344: "icap-adaptation/icap-service:1344"
+  1344: "icap-adaptation/icap-service:1345"
 ```
 
 Note: If the `tcp-services` configMap is not present in `ingress-nginx` namespace, manually create `tcp_services.yaml` file with below content
@@ -198,6 +232,7 @@ metadata:
   namespace: ingress-nginx
 data:
   1344: "icap-adaptation/icap-service:1344"
+  1344: "icap-adaptation/icap-service:1345"
 ```
 
 Run below command to apply the changes on the cluster.

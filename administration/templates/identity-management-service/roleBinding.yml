@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: identity-management-service-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: identity-management-service-account
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole #this must be Role or ClusterRole
+  name: identity-management-service-role
+  apiGroup: rbac.authorization.k8s.io 

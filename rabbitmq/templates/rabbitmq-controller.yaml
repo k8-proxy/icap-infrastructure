@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    component: {{ .Values.rabbitmqController.component }}
+  name: {{ .Values.rabbitmqController.name }}
+spec:
+  selector:
+    matchLabels:
+      component: {{ .Values.rabbitmqController.component }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.rabbitmqController.app }}
+        component: {{ .Values.rabbitmqController.component }}
+    spec:
+      containers:
+      - image: {{ .Values.rabbitmqController.image }}
+        name: {{ .Values.rabbitmqController.component }}
+        ports:
+        - containerPort: {{ .Values.rabbitmqController.port }}
+        resources:
+          limits:
+            cpu: {{ .Values.rabbitmqController.cpu }}

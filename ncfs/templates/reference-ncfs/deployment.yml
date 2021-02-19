@@ -24,6 +24,9 @@ spec:
         image: {{ .Values.imagestore.referencencfs.registry}}{{ .Values.imagestore.referencencfs.repository }}:{{ .Values.imagestore.referencencfs.tag }}
         ports:
         - containerPort: {{ .Values.referencencfs.service.port }}
+        env: 
+          - name: ASPNETCORE_URLS
+            value: "https://+:443"
         volumeMounts:
         - name: config-volume
           mountPath: /app/config
