@@ -7,10 +7,9 @@ apiVersion: v1
 metadata:
   name: glasswallsource-pvc
   annotations:
-    volume.beta.kubernetes.io/storage-class: ""
 spec:
   storageClassName: longhorn-nfs
   accessModes: [ "ReadWriteMany" ]
   resources:
     requests:
-      storage: 1Gi
+      storage: 3Gi

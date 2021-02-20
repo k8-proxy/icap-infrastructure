@@ -1,15 +1,15 @@
-kind: PersistentVolume
-apiVersion: v1
-metadata:
-  name: glasswalltarget-pv
-  labels:
-    type: local
-    usage: glasswalltarget-pv
-spec:
-  # storageClassName: azurefile
-  capacity:
-    storage: 3Gi
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: "/var/local/rancher/host/c/rebuild-data-out"
+# kind: PersistentVolume
+# apiVersion: v1
+# metadata:
+#   name: glasswalltarget-pv
+#   labels:
+#     type: local
+#     usage: glasswalltarget-pv
+# spec:
+#   # storageClassName: azurefile
+#   capacity:
+#     storage: 3Gi
+#   accessModes:
+#     - ReadWriteOnce
+#   hostPath:
+#     path: "/var/local/rancher/host/c/rebuild-data-out"
