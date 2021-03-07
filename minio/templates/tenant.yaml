@@ -3,7 +3,6 @@ apiVersion: minio.min.io/v2
 kind: Tenant
 metadata:
   name: minio
-  namespace: minio
   ## Optionally pass labels to be applied to the statefulset pods
   labels:
     app: minio
