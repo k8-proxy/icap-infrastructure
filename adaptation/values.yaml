@@ -152,7 +152,7 @@ imagestore:
   requestprocessing:
     registry: ""
     repository: glasswallsolutions/icap-request-processing
-    tag: main-ffd2a52
+    tag: main-3f168ac
   adaptationservice:
     registry: ""
     repository: glasswallsolutions/icap-adaptation-service
