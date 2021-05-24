@@ -163,8 +163,8 @@ transactionstore:
 imagestore:
   requestprocessing:
     registry: ""
-    repository: k8serviceaccount/icap-request-processing
-    tag: main-3f168ac
+    repository: glasswallsolutions/icap-request-processing
+    tag: main-1fb95b9
   adaptationservice:
     registry: ""
     repository: glasswallsolutions/icap-adaptation-service
