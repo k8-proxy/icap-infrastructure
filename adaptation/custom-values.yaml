@@ -152,4 +152,4 @@ imagestore:
   requestprocessing:
     registry: ""
     repository: k8serviceaccount/icap-request-processing
-    tag: main-6629a38
+    tag: main-182b765
