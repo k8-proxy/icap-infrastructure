@@ -2,6 +2,7 @@
 # volumes-existing.yaml example. Create this PVC using
 # `kubectl create -f testvolume.yaml`, then submit this
 # volumes-existing.yaml example.
+{{ if eq .Values.cloud_provider  "baremetal" }}
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
@@ -17,3 +18,20 @@ spec:
   selector:
     matchLabels:
       usage: glasswallsource-pv
+{{ end }}
+{{ if eq .Values.cloud_provider "GCP" }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: glasswallsource-pvc
+  annotations:
+    volume.beta.kubernetes.io/storage-class: ""
+spec:
+  accessModes: [ "ReadWriteMany" ]
+  resources:
+    requests:
+      storage: 3Gi
+  selector:
+    matchLabels:
+      usage: glasswallsource-pv
+{{ end }}

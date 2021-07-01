@@ -220,3 +220,10 @@ secrets:
     tls:
       tlsCert: "<<https://gw-icap-keyvault.vault.azure.net/secrets/mvpicapserviceTlsCert>>"
       tlsKey: "<<https://gw-icap-keyvault.vault.azure.net/secrets/mvpicapserviceTlsKey>>"
+
+# Possible values are baremetal, Azure, GCP, AWS
+cloud_provider: "baremetal"
+gcp:
+  filestore:
+    source_ip_address: ""
+    target_ip_address: ""

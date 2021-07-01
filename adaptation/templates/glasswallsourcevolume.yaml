@@ -1,3 +1,4 @@
+{{ if eq .Values.cloud_provider  "baremetal" }}
 kind: PersistentVolume
 apiVersion: v1
 metadata:
@@ -13,3 +14,23 @@ spec:
     - ReadWriteOnce
   hostPath:
     path: "/var/local/rancher/host/c/rebuild-data-in"
+{{ end }}
+---
+{{ if eq .Values.cloud_provider "GCP" }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: glasswallsource-pv
+  labels:
+    type: GCP-Filestore
+    usage: glasswallsource-pv
+spec:
+  #storageClassName: azurefile
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    path: "/icap-vol1"
+    server: [{{ .Values.gcp.filestore.source_ip_address }}]
+{{ end }}
