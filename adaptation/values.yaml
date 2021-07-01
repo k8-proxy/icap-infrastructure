@@ -220,6 +220,3 @@ secrets:
     tls:
       tlsCert: "<<https://gw-icap-keyvault.vault.azure.net/secrets/mvpicapserviceTlsCert>>"
       tlsKey: "<<https://gw-icap-keyvault.vault.azure.net/secrets/mvpicapserviceTlsKey>>"
-  rabbitmq:
-    username: "<example>"
-    password: "<example>"

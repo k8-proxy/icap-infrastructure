@@ -25,6 +25,21 @@ spec:
             cpu: {{ .Values.rabbitmqController.cpu }}
         env:
           - name: RABBITMQ_DEFAULT_USER
-            value: {{ .Values.rabbitmqController.username }}
+            valueFrom:
+              secretKeyRef:
+                name: rabbitmq-service-default-user
+                key: username
           - name: RABBITMQ_DEFAULT_PASS
-            value: {{ .Values.rabbitmqController.password }}
+            valueFrom:
+              secretKeyRef:
+                name: rabbitmq-service-default-user
+                key: password
+
+---
+apiVersion: v1
+kind: Secret
+data:
+  password: {{ b64enc .Values.rabbitmqController.password }}
+  username: {{ b64enc .Values.rabbitmqController.username }}
+metadata:
+  name: rabbitmq-service-default-user

@@ -3,7 +3,6 @@ kind: Deployment
 metadata: 
   name: {{ .Values.archiveadaptationservice.name }}
 spec:
-  replicas: {{ .Values.archiveadaptationservice.replicas }}
   selector:
     matchLabels:
       app: {{ .Values.archiveadaptationservice.name }}

@@ -5,7 +5,6 @@ metadata:
   labels:
     app: {{ .Values.icapservice.applabel }}
 spec:
-  replicas: {{ .Values.icapservice.replicas }}
   selector:
     matchLabels:
       app: {{ .Values.icapservice.applabel }}
@@ -55,9 +54,23 @@ spec:
               readOnly: true
             - name: gw-rebuild-conf-vol
               mountPath: /usr/local/c-icap/rebuild 
-              readOnly: true  
+              readOnly: true
+          resources:
+            limits:
+              cpu: "1"
+              memory: 500Mi
+            requests:
+              cpu: "0.5"
+              memory: 100Mi
         - name: icap-service-metrics-exporter
           image: {{ .Values.imagestore.icapservicemetricsexporter.registry }}{{ .Values.imagestore.icapservicemetricsexporter.repository }}:{{ .Values.imagestore.icapservicemetricsexporter.tag }}
+          resources:
+            limits:
+              cpu: "1"
+              memory: 500Mi
+            requests:
+              cpu: "100m"
+              memory: 100Mi
           ports:
             - containerPort: {{ .Values.prometheus.metricsport }}
           env:

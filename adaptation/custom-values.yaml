@@ -37,20 +37,26 @@ queue:
     port: "\"5672\""
 adaptationservice:
   name: adaptation-service
-  replicas: 1
+  replicas:
+    min: 1
+    max: 80
   amqpurl: "amqp://guest:guest@rabbitmq-service:5672/"
   rolename: adaptation-service-role
 archiveadaptationservice:
   name: archive-adaptation-service
   namespace: icap-adaptation
-  replicas: 1
+  replicas:
+    min: 1
+    max: 10
   amqpurl: "amqp://guest:guest@rabbitmq-service:5672/"
   exchange: adaptation-exchange
   rolename: archive-adaptation-service-role
 icapservice:
   name: icap-service
   applabel: adaptation
-  replicas: 1
+  replicas:
+    min: 1
+    max: 150
   port: 1344
   tlsport: 1345
   enableFileId: true
@@ -153,3 +159,17 @@ imagestore:
     registry: ""
     repository: k8serviceaccount/icap-request-processing
     tag: main-6629a38
+
+secrets:
+  transactionqueryservice:
+    transactionqueryservicesecret:
+      username: "query-service"
+      password: "<strong-secret>"
+  policyupdateservice:
+    policyupdateservicesecret:
+      username: "policy-management"
+      password: "<strong-secret>"
+  mvpicapservice:
+    tls:
+      tlsCert: "certficate.crt"
+      tlsKey: "tls.key"
