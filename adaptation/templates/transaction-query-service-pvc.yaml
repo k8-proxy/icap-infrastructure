@@ -1,4 +1,4 @@
----
+{{ if eq .Values.cloud_provider  "baremetal" }}
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
@@ -7,10 +7,27 @@ metadata:
     volume.beta.kubernetes.io/storage-class: ""
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWrite
   resources:
     requests:
       storage: {{ .Values.transactionstore.storage }}
   selector:
     matchLabels:
       usage: pv-transaction-query-service
+{{ end }}
+{{ if eq .Values.cloud_provider "GCP" }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-transaction-query-service
+  annotations:
+    volume.beta.kubernetes.io/storage-class: ""
+spec:
+  accessModes: [ "ReadWriteMany" ]
+  resources:
+    requests:
+      storage: {{ .Values.transactionstore.storage }}
+  selector:
+    matchLabels:
+      usage: pv-transaction-query-service
+{{ end }}

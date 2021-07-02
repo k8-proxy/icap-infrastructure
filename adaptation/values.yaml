@@ -227,3 +227,7 @@ gcp:
   filestore:
     source_ip_address: ""
     target_ip_address: ""
+    transactions_ip_address: ""
+    source_path: ""
+    target_path: ""
+    transactions_path: ""
