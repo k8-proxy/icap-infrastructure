@@ -225,9 +225,9 @@ secrets:
 cloud_provider: "baremetal"
 gcp:
   filestore:
-    source_ip_address: ""
-    target_ip_address: ""
-    transactions_ip_address: ""
-    source_path: ""
-    target_path: ""
-    transactions_path: ""
+    source_ip_address: "<10.1.0.2>"
+    target_ip_address: "<10.1.0.2>"
+    transactions_ip_address: "<10.1.0.2>"
+    source_path: "</icapsourcevol1/source>"
+    target_path: "</icapsourcevol1/target>"
+    transactions_path: "</icapsourcevol1/transactions>"
