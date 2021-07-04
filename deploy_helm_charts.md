@@ -5,7 +5,7 @@
 ```
 gcloud container clusters get-credentials <cluster name> --zone <zone id> --project <GCP project id>
 ```
-- Run below command to assign `cluster-admin` role to your user. This is required only to deploy the helm charts.
+- Run below command to assign `cluster-admin` role to your user. This is required only to deploy the helm charts. `Kubernetes Engine Admin` role is required to run below command.
 ```
 kubectl create clusterrolebinding <your name>-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud config get-value account)
 ```
@@ -23,7 +23,7 @@ kubectl get all -ningress-nginx
 
 2. Install `ReadWriteMany` supported persistence volume
 
-- Create a Google Filestore instance by running below command. Make sure the given IP range is not in use.
+- Create a Google Filestore instance by running below command. Make sure the given IP range is not in use. `Filestore Editor` role is required to create a Filestore instance.
 ```
 gcloud filestore instances create nfs-server \
     --project=<project id> \
