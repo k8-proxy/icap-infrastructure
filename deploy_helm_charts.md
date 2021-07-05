@@ -62,7 +62,10 @@ kubectl create ns icap-adaptation
 kubectl create ns minio
 kubectl create ns jaeger
 ```
-
+- clone icap-infrastructure repo
+```
+git clone https://github.com/k8-proxy/icap-infrastructure.git --branch k8-minio && pushd icap-infrastructure
+```
 - Open adaptation/custom-values.yaml file and update under gcp.filestore with ip address and paths of Google Filestore.
 - Update password in secrets section of yaml with strong passwords.
 - Generate a SSL cert and key pair and copy to adaptation folder
@@ -86,7 +89,6 @@ openssl req -newkey rsa:2048 -config openssl.cnf -nodes -keyout  tls.key -x509 -
 - Update secrets.mvpicapservice.tls.tlsCert and secrets.mvpicapservice.tls.tlsKey with paths of Certificate and Key respectively
 - Install rabbitmq and adaptation helm charts. 
 ```
-git clone https://github.com/k8-proxy/icap-infrastructure.git --branch k8-minio && pushd icap-infrastructure
 helm upgrade rabbitmq --install rabbitmq --namespace icap-adaptation --atomic
 helm upgrade adaptation --values adaptation/custom-values.yaml --install adaptation --namespace icap-adaptation --set cloud_provider=GCP
 popd
