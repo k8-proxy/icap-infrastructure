@@ -85,8 +85,9 @@ emailAddress = admin@glasswall.com
 EOF
 
 openssl req -newkey rsa:2048 -config openssl.cnf -nodes -keyout  tls.key -x509 -days 365 -out certificate.crt
+mv certificate.crt tls.key adaptation/
 ```
-- Update secrets.mvpicapservice.tls.tlsCert and secrets.mvpicapservice.tls.tlsKey with paths of Certificate and Key respectively
+- Update secrets.mvpicapservice.tls.tlsCert and secrets.mvpicapservice.tls.tlsKey in adaptation/custom-values.yaml with paths of certificate.crt and tls.key respectively
 - Install rabbitmq and adaptation helm charts. 
 ```
 helm upgrade rabbitmq --install rabbitmq --namespace icap-adaptation --atomic
