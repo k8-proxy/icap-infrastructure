@@ -52,6 +52,7 @@ sudo zypper -n install nfs-client
 sudo mkdir -p /mnt/glasswall-filestore
 sudo mount <ip-address>:/<file-share-name> /mnt/glasswall-filestore
 sudo mkdir /mnt/glasswall-filestore/source /mnt/glasswall-filestore/target /mnt/glasswall-filestore/transactions
+sudo umount /mnt/glasswall-filestore
 ```
 
 ## Deploy helm charts:
