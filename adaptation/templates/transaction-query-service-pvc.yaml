@@ -1,4 +1,4 @@
-{{ if eq .Values.cloud_provider  "baremetal" }}
+{{ if eq (lower .Values.cloud_provider)  "baremetal" }}
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
@@ -15,7 +15,7 @@ spec:
     matchLabels:
       usage: pv-transaction-query-service
 {{ end }}
-{{ if eq .Values.cloud_provider "GCP" }}
+{{ if eq (lower .Values.cloud_provider) "gcp" }}
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
@@ -31,7 +31,7 @@ spec:
     matchLabels:
       usage: pv-transaction-query-service
 {{ end }}
-{{ if eq .Values.cloud_provider "Azure" }}
+{{ if eq (lower .Values.cloud_provider) "azure" }}
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:

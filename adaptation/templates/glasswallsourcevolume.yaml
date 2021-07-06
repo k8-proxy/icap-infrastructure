@@ -1,4 +1,4 @@
-{{ if eq .Values.cloud_provider  "baremetal" }}
+{{ if eq (lower .Values.cloud_provider)  "baremetal" }}
 kind: PersistentVolume
 apiVersion: v1
 metadata:
@@ -16,7 +16,7 @@ spec:
     path: "/var/local/rancher/host/c/rebuild-data-in"
 {{ end }}
 ---
-{{ if eq .Values.cloud_provider "GCP" }}
+{{ if eq (lower .Values.cloud_provider) "gcp" }}
 apiVersion: v1
 kind: PersistentVolume
 metadata:

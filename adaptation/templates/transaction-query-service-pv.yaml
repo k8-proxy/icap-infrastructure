@@ -1,4 +1,4 @@
-{{ if eq .Values.cloud_provider "baremetal" }}
+{{ if eq (lower .Values.cloud_provider) "baremetal" }}
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -17,7 +17,7 @@ spec:
   volumeMode: Filesystem
 {{ end }}
 ---
-{{ if eq .Values.cloud_provider "GCP" }}
+{{ if eq (lower .Values.cloud_provider) "gcp" }}
 apiVersion: v1
 kind: PersistentVolume
 metadata:

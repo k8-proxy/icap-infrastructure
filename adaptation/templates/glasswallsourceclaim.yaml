@@ -2,7 +2,7 @@
 # volumes-existing.yaml example. Create this PVC using
 # `kubectl create -f testvolume.yaml`, then submit this
 # volumes-existing.yaml example.
-{{ if eq .Values.cloud_provider  "baremetal" }}
+{{ if eq (lower .Values.cloud_provider)  "baremetal" }}
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
@@ -19,7 +19,7 @@ spec:
     matchLabels:
       usage: glasswallsource-pv
 {{ end }}
-{{ if eq .Values.cloud_provider "GCP" }}
+{{ if eq (lower .Values.cloud_provider) "gcp" }}
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
@@ -35,7 +35,7 @@ spec:
     matchLabels:
       usage: glasswallsource-pv
 {{ end }}
-{{ if eq .Values.cloud_provider "Azure" }}
+{{ if eq (lower .Values.cloud_provider) "azure" }}
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
