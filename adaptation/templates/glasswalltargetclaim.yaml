@@ -35,3 +35,15 @@ spec:
     matchLabels:
       usage: glasswalltarget-pv
 {{ end }}
+{{ if eq .Values.cloud_provider "Azure" }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: glasswalltarget-pvc
+spec:
+  storageClassName: azurefile
+  accessModes: [ "ReadWriteMany" ]
+  resources:
+    requests:
+      storage: 3Gi
+{{ end }}

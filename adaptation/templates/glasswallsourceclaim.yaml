@@ -35,3 +35,17 @@ spec:
     matchLabels:
       usage: glasswallsource-pv
 {{ end }}
+{{ if eq .Values.cloud_provider "Azure" }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: glasswallsource-pvc
+  annotations:
+    volume.beta.kubernetes.io/storage-class: ""
+spec:
+  storageClassName: azurefile
+  accessModes: [ "ReadWriteMany" ]
+  resources:
+    requests:
+      storage: 3Gi
+{{ end }}

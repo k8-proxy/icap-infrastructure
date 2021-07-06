@@ -31,3 +31,16 @@ spec:
     matchLabels:
       usage: pv-transaction-query-service
 {{ end }}
+{{ if eq .Values.cloud_provider "Azure" }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-transaction-query-service
+  annotations:
+    volume.beta.kubernetes.io/storage-class: ""
+spec:
+  accessModes: [ "ReadWriteMany" ]
+  resources:
+    requests:
+      storage: {{ .Values.transactionstore.storage }}
+{{ end }}
