@@ -36,9 +36,8 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: pvc-transaction-query-service
-  annotations:
-    volume.beta.kubernetes.io/storage-class: ""
 spec:
+  storageClassName: azurefile
   accessModes: [ "ReadWriteMany" ]
   resources:
     requests:

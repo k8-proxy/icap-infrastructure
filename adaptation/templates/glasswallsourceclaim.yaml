@@ -40,8 +40,6 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: glasswallsource-pvc
-  annotations:
-    volume.beta.kubernetes.io/storage-class: ""
 spec:
   storageClassName: azurefile
   accessModes: [ "ReadWriteMany" ]
