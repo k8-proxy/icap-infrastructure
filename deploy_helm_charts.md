@@ -53,6 +53,7 @@ sudo mkdir -p /mnt/glasswall-filestore
 sudo mount <ip-address>:/<file-share-name> /mnt/glasswall-filestore
 sudo mkdir /mnt/glasswall-filestore/source /mnt/glasswall-filestore/target /mnt/glasswall-filestore/transactions
 sudo umount /mnt/glasswall-filestore
+sudo rm -rf /mnt/glasswall-filestore
 ```
 
 ## Deploy helm charts:
@@ -119,7 +120,7 @@ popd
 - Install Cloud SDK Rest API
 ```
 git clone https://github.com/k8-proxy/cs-k8s-api -b develop && pushd cs-k8s-api
-helm upgrade --install -n icap-adaptation rebuild-api --set application.api.env.SDKApiVersion="0.5.1" --set application.api.env.SDKEngineVersion="1.255" infra/kubernetes/chart
+helm upgrade --install -n icap-adaptation rebuild-api --set application.api.env.SDKApiVersion="0.6.0" --set application.api.env.SDKEngineVersion="1.260" infra/kubernetes/chart
 popd
 ```
 
