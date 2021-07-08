@@ -1,5 +1,6 @@
 
-## Connect to Kubernetes Cluster in GCP
+## Connect to Kubernetes Cluster
+### For GCP
 - Create a Kubernetes cluster in GCP
 - Run below command in the local machine to get kubernetes configuration of the cluster.
 ```
@@ -9,6 +10,15 @@ gcloud container clusters get-credentials <cluster name> --zone <zone id> --proj
 ```
 kubectl create clusterrolebinding <your name>-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud config get-value account)
 ```
+
+### For Azure
+- Create a Kubernetes cluster in Azure.
+- Run below command in the local machine to get kubernetes configuration of the cluster.
+```
+az aks get-credentials -n <cluster name> -g <resource group name>
+```
+### For AWS
+- TBD
 
 ## Setup pre-requisites:
 1. Install nginx ingress controller
@@ -21,8 +31,9 @@ helm install nginx-ingress ingress-nginx/ingress-nginx -ningress-nginx
 kubectl get all -ningress-nginx
 ```
 
-2. Install `ReadWriteMany` supported persistence volume
+2. Install `ReadWriteMany` supported persistence volume. These steps vary based on the cloud provider. For Azure, this step is not requied. For AWS or GCP follow the specific sections.
 
+### For GCP
 - Create a Google Filestore instance by running below command. Make sure the given IP range is not in use. `Filestore Editor` role is required to create a Filestore instance.
 ```
 gcloud filestore instances create nfs-server \
@@ -55,6 +66,8 @@ sudo mkdir /mnt/glasswall-filestore/source /mnt/glasswall-filestore/target /mnt/
 sudo umount /mnt/glasswall-filestore
 sudo rm -rf /mnt/glasswall-filestore
 ```
+### For AWS
+- TBD
 
 ## Deploy helm charts:
 - Create namespaces
@@ -89,10 +102,10 @@ openssl req -newkey rsa:2048 -config openssl.cnf -nodes -keyout  tls.key -x509 -
 mv certificate.crt tls.key adaptation/
 ```
 - Update secrets.mvpicapservice.tls.tlsCert and secrets.mvpicapservice.tls.tlsKey in adaptation/custom-values.yaml with paths of certificate.crt and tls.key respectively
-- Install rabbitmq and adaptation helm charts. 
+- Install rabbitmq and adaptation helm charts. Update below command with specific cloud provider before running the command. Azure/AWS/GCP supports multi-node cluster but baremetal supports only single-node cluster.
 ```
 helm upgrade rabbitmq --install rabbitmq --namespace icap-adaptation --atomic
-helm upgrade adaptation --values adaptation/custom-values.yaml --install adaptation --namespace icap-adaptation --set cloud_provider=GCP
+helm upgrade adaptation --values adaptation/custom-values.yaml --install adaptation --namespace icap-adaptation --set cloud_provider=<GCP/Azure/AWS/Baremetal>
 popd
 ```
 
@@ -120,7 +133,7 @@ popd
 - Install Cloud SDK Rest API
 ```
 git clone https://github.com/k8-proxy/cs-k8s-api -b develop && pushd cs-k8s-api
-helm upgrade --install -n icap-adaptation rebuild-api --set application.api.env.SDKApiVersion="0.6.0" --set application.api.env.SDKEngineVersion="1.260" infra/kubernetes/chart
+helm upgrade --install -n icap-adaptation rebuild-api --set application.api.env.SDKApiVersion="0.7.0" --set application.api.env.SDKEngineVersion="1.260" infra/kubernetes/chart
 popd
 ```
 
