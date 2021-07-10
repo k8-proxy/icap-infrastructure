@@ -1,0 +1,24 @@
+{{- if .Values.service.api.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "fullname" . }}
+{{- if .Values.service.api.annotations }}
+  annotations:
+{{ toYaml .Values.service.api.annotations | indent 4 }}
+{{- end }}
+  labels:
+    app: {{ template "appname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.api.type }}
+  ports:
+  - port: {{ .Values.service.api.externalPort }}
+    targetPort: {{ .Values.service.api.internalPort }}
+    protocol: TCP
+    name: {{ .Values.service.api.name }}
+  selector:
+    app: {{ template "appname" . }}
+{{- end -}}

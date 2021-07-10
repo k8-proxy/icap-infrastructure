@@ -1,0 +1,90 @@
+{{- if .Values.ingress.enabled -}}
+{{- if ge .Capabilities.KubeVersion.Version "v1.19" }}
+apiVersion: networking.k8s.io/v1
+{{- else }}
+apiVersion: extensions/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: {{ template "appname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version| replace "+" "_" }}"
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+{{- if .Values.ingress.annotations }}
+  annotations:
+{{ toYaml .Values.ingress.annotations | indent 4 }}
+{{- end }}
+spec:
+{{- if .Values.ingress.tls.enabled }}
+  tls:
+  - hosts:
+    {{- if .Values.ingress.tls.domain }}
+    - {{ template "hostname" .Values.ingress.tls.domain }}
+    {{- end }}
+    secretName: {{ .Values.ingress.tls.secretName | default (printf "%s-tls" (include "fullname" .)) }}
+{{- end }}
+  rules:
+  - host: ""
+    http:
+      &httpRule
+      {{- if ge .Capabilities.KubeVersion.Version "v1.19" }}
+      paths:
+      - path: /api/*
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ template "fullname" . }}
+            port: 
+              number: {{ .Values.service.api.externalPort }}
+      - path: /swagger/*
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ template "fullname" . }}
+            port:
+              number: {{ .Values.service.api.externalPort }}
+      - path: /Swg/*
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ template "fullname" . }}
+            port:
+              number: {{ .Values.service.api.externalPort }}
+      - path: /openapi.json
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ template "fullname" . }}
+            port:
+              number: {{ .Values.service.api.externalPort }}
+      {{- else }}
+      paths:
+      - path: /api/*
+        pathType: Prefix
+        backend:
+          serviceName: {{ template "fullname" . }}
+          servicePort: {{ .Values.service.api.externalPort }}
+      - path: /swagger/*
+        pathType: Prefix
+        backend:
+          serviceName: {{ template "fullname" . }}
+          servicePort: {{ .Values.service.api.externalPort }}
+      - path: /Swg/*
+        pathType: Prefix
+        backend:
+          serviceName: {{ template "fullname" . }}
+          servicePort: {{ .Values.service.api.externalPort }}
+      - path: /openapi.json
+        pathType: Prefix
+        backend:
+          serviceName: {{ template "fullname" . }}
+          servicePort: {{ .Values.service.api.externalPort }}
+      {{- end }}
+  {{- if .Values.ingress.tls.domain }}
+  - host: {{ template "hostname" .Values.ingress.tls.domain }}
+    http:
+      *httpRule
+  {{- end -}}
+{{- end -}}

@@ -1,0 +1,45 @@
+{{ if eq (lower .Values.cloud_provider)  "baremetal" }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-transaction-query-service
+  annotations:
+    volume.beta.kubernetes.io/storage-class: ""
+spec:
+  accessModes:
+    - ReadWrite
+  resources:
+    requests:
+      storage: {{ .Values.transactionstore.storage }}
+  selector:
+    matchLabels:
+      usage: pv-transaction-query-service
+{{ end }}
+{{ if eq (lower .Values.cloud_provider) "gcp" }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-transaction-query-service
+  annotations:
+    volume.beta.kubernetes.io/storage-class: ""
+spec:
+  accessModes: [ "ReadWriteMany" ]
+  resources:
+    requests:
+      storage: {{ .Values.transactionstore.storage }}
+  selector:
+    matchLabels:
+      usage: pv-transaction-query-service
+{{ end }}
+{{ if eq (lower .Values.cloud_provider) "azure" }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-transaction-query-service
+spec:
+  storageClassName: azurefile
+  accessModes: [ "ReadWriteMany" ]
+  resources:
+    requests:
+      storage: {{ .Values.transactionstore.storage }}
+{{ end }}

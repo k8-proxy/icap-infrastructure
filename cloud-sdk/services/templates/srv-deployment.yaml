@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.srv.name }}
+spec:
+  replicas: {{ .Values.srv.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.srv.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.srv.name }}
+    spec:
+      volumes:
+      - name: source-vol
+        persistentVolumeClaim:
+          claimName: glasswallsource-pvc
+      - name: target-vol
+        persistentVolumeClaim:
+          claimName: glasswalltarget-pvc
+      - name: transactions-vol
+        persistentVolumeClaim:
+          claimName: pvc-transaction-query-service
+      containers:
+      - name: srv
+        image: {{ .Values.imagestore.srv.registry }}{{ .Values.imagestore.srv.repository }}:{{ .Values.imagestore.srv.tag }}
+        volumeMounts:
+        - mountPath: {{ .Values.volumemountpath.source }}
+          name: source-vol
+        - mountPath: {{ .Values.volumemountpath.target }}
+          name: target-vol
+        - mountPath: {{ .Values.volumemountpath.transactions }}
+          name: transactions-vol
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: INPUT_MOUNT
+          value: {{ .Values.volumemountpath.source }}
+        - name: OUTPUT_MOUNT
+          value: {{ .Values.volumemountpath.target }}
+        - name: TRANSACTION_STORE_PATH
+          value: {{ .Values.volumemountpath.transactions }}
+        - name: MESSAGE_BROKER_USER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: rabbitmq-service-default-user
+        - name: MESSAGE_BROKER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: rabbitmq-service-default-user
+        - name: ADAPTATION_REQUEST_QUEUE_HOSTNAME
+          value: {{ .Values.queue.adaptationRequest.hostname }}
+        - name: ADAPTATION_REQUEST_QUEUE_PORT
+          value: {{ .Values.queue.adaptationRequest.port }}
+        - name: MINIO_ENDPOINT
+          value: {{ .Values.minio.adaptationRequest.endpoint }}
+        - name: MINIO_SOURCE_BUCKET
+          value: {{ .Values.minio.adaptationRequest.sourcebucket }}
+        - name: MINIO_CLEAN_BUCKET
+          value: {{ .Values.minio.adaptationRequest.processedbucket }}
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: minio-credentials
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: minio-credentials
+        - name: JAEGER_AGENT_HOST
+          value: {{ .Values.jaeger.host }}
+        - name: JAEGER_AGENT_PORT
+          value: {{ .Values.jaeger.port | quote }}
+        - name: JAEGER_AGENT_ON
+          value: "true"

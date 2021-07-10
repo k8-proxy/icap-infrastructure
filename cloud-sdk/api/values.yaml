@@ -1,0 +1,73 @@
+# Default values for chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+k8s_version: "1.20"
+replicaCount: 1
+image:
+  api:
+    repository: glasswallsolutions/cs-k8s-api
+    tag: develop-d2383c3
+    pullPolicy: IfNotPresent
+podAnnotations: {}
+application:
+  api:
+    env:
+      ProcessingTimeoutDuration: "00:10:00"
+      OriginalStorePath: "/var/source"
+      RebuiltStorePath: "/var/target"
+      ExchangeName: "adaptation-exchange"
+      RequestQueueName: "adaptation-request-queue"
+      OutcomeQueueName: "amq.rabbitmq.reply-to"
+      RequestMessageName: "adaptation-request"
+      MBHostName: "rabbitmq-service"
+      MBPort: "5672"
+    secrets: {}
+    secretName: rabbitmq-service-default-user
+service:
+  api:
+    enabled: true
+    annotations: {}
+    name: rest-api
+    type: ClusterIP
+    additionalHosts: {}
+    commonName:
+    externalPort: 80
+    internalPort: 80
+ingress:
+  enabled: true
+  tls:
+    enabled: false
+    domain:
+    secretName:
+    crt:
+    key:
+    ca_crt:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 2048m
+livenessProbe:
+  path: "/api/health"
+  initialDelaySeconds: 30
+  timeoutSeconds: 3
+  scheme: "HTTP"
+readinessProbe:
+  path: "/api/health"
+  initialDelaySeconds: 30
+  timeoutSeconds: 3
+  scheme: "HTTP"
+resources:
+  api:
+    limits:
+      cpu: 1
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1000Mi
+podDisruptionBudget:
+  enabled: false
+  # minAvailable: 1
+  maxUnavailable: 1
+scale:
+  api:
+    enabled: true
+    MinReplicaCount: 1
+    MaxReplicaCount: 8

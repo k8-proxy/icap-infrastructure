@@ -1,0 +1,35 @@
+{{ if eq (lower .Values.cloud_provider) "baremetal" }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-transaction-query-service
+  labels:
+    usage: pv-transaction-query-service
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: {{ .Values.transactionstore.storage }}
+  hostPath:
+    path: /var/local/rancher/host/c/transactionquery
+    type: ""
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem
+{{ end }}
+---
+{{ if eq (lower .Values.cloud_provider) "gcp" }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-transaction-query-service
+  labels:
+    usage: pv-transaction-query-service
+spec:
+  capacity:
+    storage: {{ .Values.transactionstore.storage }}
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    path: {{ .Values.gcp.filestore.transactions_path }}
+    server: {{ .Values.gcp.filestore.transactions_ip_address }}
+{{ end }}

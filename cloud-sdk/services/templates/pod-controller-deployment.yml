@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.podcontroller.name }}
+spec:
+  replicas: {{ .Values.podcontroller.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.podcontroller.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.podcontroller.name }}
+    spec:
+      serviceAccountName: {{ .Values.podcontroller.saname }}
+      containers:
+      - name: pod-controller
+        image: {{ .Values.imagestore.podcontroller.registry}}{{ .Values.imagestore.podcontroller.repository }}:{{ .Values.imagestore.podcontroller.tag }}
+        env:
+        - name: POD_COUNT
+          value: "{{ .Values.podcontroller.pod_count }}"
+        - name: PROCESS_IMAGE
+          value: {{ .Values.imagestore.process.registry }}{{ .Values.imagestore.process.repository }}:{{ .Values.imagestore.process.tag }}
+        - name: MINIO_ENDPOINT
+          value: {{ .Values.minio.adaptationRequest.endpoint }}
+        - name: MINIO_USER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: minio-credentials
+        - name: MINIO_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: minio-credentials
+        - name: JAEGER_AGENT_HOST
+          value: {{ .Values.jaeger.host }}
+        - name: JAEGER_AGENT_PORT
+          value: {{ .Values.jaeger.port | quote }}
+        - name: JAEGER_AGENT_ON
+          value: "true"

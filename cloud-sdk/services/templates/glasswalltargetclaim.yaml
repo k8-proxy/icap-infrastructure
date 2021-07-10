@@ -1,0 +1,49 @@
+# This PVC manifest is to be used in conjunction with the
+# volumes-existing.yaml example. Create this PVC using
+# `kubectl create -f testvolume.yaml`, then submit this
+# volumes-existing.yaml example.
+{{ if eq (lower .Values.cloud_provider)  "baremetal" }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: glasswalltarget-pvc
+  annotations:
+    volume.beta.kubernetes.io/storage-class: ""
+spec:
+  # storageClassName: azurefile
+  accessModes: [ "ReadWriteOnce" ]
+  resources:
+    requests:
+      storage: 3Gi
+  selector:
+    matchLabels:
+      usage: glasswalltarget-pv
+{{ end }}
+{{ if eq (lower .Values.cloud_provider) "gcp" }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: glasswalltarget-pvc
+  annotations:
+    volume.beta.kubernetes.io/storage-class: ""
+spec:
+  accessModes: [ "ReadWriteMany" ]
+  resources:
+    requests:
+      storage: 3Gi
+  selector:
+    matchLabels:
+      usage: glasswalltarget-pv
+{{ end }}
+{{ if eq (lower .Values.cloud_provider) "azure" }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: glasswalltarget-pvc
+spec:
+  storageClassName: azurefile
+  accessModes: [ "ReadWriteMany" ]
+  resources:
+    requests:
+      storage: 3Gi
+{{ end }}

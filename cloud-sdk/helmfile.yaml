@@ -1,0 +1,76 @@
+# Defult settings to use with helm.
+helmDefaults:
+  timeout: 600
+
+# The desired state of Helm releases.
+releases:
+- name: rabbitmq
+  namespace: icap-adaptation
+  labels:
+    app: rabbitmq
+  chart: ./rabbitmq
+  version: 0.0.3
+  missingFileHandler: Error
+  values:
+  - rabbitmqController:
+      username: guest
+      password: guest
+
+- name: ingress-nginx
+  namespace: ingress-nginx
+  labels:
+    app: ingress-nginx
+  chart: ingress-nginx/ingress-nginx
+  missingFileHandler: Error
+
+- name: minio
+  namespace: minio
+  labels:
+    app: minio
+  chart: minio/minio
+  missingFileHandler: Error
+  values:
+    - accessKey: minio
+      secretKey: strong-secret
+      buckets:
+      - name: sourcefiles
+        policy: none
+        purge: false
+      - name: cleanfiles
+        policy: none
+        purge: false
+      fullnameOverride: minio-server
+      persistence:
+        enabled: false
+      service:
+        type: LoadBalancer
+
+- name: glasswall-serivces
+  namespace: icap-adaptation
+  
+  labels:
+    app: services
+  chart: ./services
+  version: 0.0.3
+  missingFileHandler: Error
+  values:
+  - minio:
+      accessKey: minio
+      secretKey: strong-secret
+    cloud_provider: GCP
+    gcp:
+      filestore:
+        source_ip_address: "10.1.0.2"
+        target_ip_address: "10.1.0.2"
+        transactions_ip_address: "10.1.0.2"
+        source_path: "/icapsourcevol1/source"
+        target_path: "/icapsourcevol1/target"
+        transactions_path: "/icapsourcevol1/transactions"
+
+- name: rebuild-api
+  namespace: icap-adaptation
+  chart: api
+  values:
+    - service:
+        api:
+          type: LoadBalancer

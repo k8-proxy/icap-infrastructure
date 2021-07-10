@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    component: {{ .Values.rabbitmqController.component }}
+  name: {{ .Values.rabbitmqController.name }}
+spec:
+  selector:
+    matchLabels:
+      component: {{ .Values.rabbitmqController.component }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.rabbitmqController.app }}
+        component: {{ .Values.rabbitmqController.component }}
+    spec:
+      containers:
+      - image: {{ .Values.rabbitmqController.image }}
+        name: {{ .Values.rabbitmqController.component }}
+        ports:
+        - containerPort: {{ .Values.rabbitmqController.port }}
+        resources:
+          limits:
+            cpu: {{ .Values.rabbitmqController.cpu }}
+        env:
+          - name: RABBITMQ_DEFAULT_USER
+            valueFrom:
+              secretKeyRef:
+                name: rabbitmq-service-default-user
+                key: username
+          - name: RABBITMQ_DEFAULT_PASS
+            valueFrom:
+              secretKeyRef:
+                name: rabbitmq-service-default-user
+                key: password
+
+---
+apiVersion: v1
+kind: Secret
+data:
+  password: {{ b64enc .Values.rabbitmqController.password }}
+  username: {{ b64enc .Values.rabbitmqController.username }}
+metadata:
+  name: rabbitmq-service-default-user

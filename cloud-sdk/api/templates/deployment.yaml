@@ -1,0 +1,112 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "trackableappname" . }}
+  annotations: {}
+  labels:
+    app: {{ template "appname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ template "appname" . }}
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      annotations:
+        checksum/application-secrets: "{{ .Values.application.secretChecksum }}"
+{{- if .Values.podAnnotations }}
+{{ toYaml .Values.podAnnotations | indent 8 }}
+{{- end }}
+      labels:
+        app: {{ template "appname" . }}
+        track: "{{ .Values.application.track }}"
+        tier: "{{ .Values.application.tier }}"
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.api.repository }}:{{ .Values.image.api.tag }}"
+        imagePullPolicy: {{ .Values.image.api.pullPolicy }}
+        {{- if .Values.application.api.secrets }}
+        envFrom:
+        - secretRef:
+            name: {{ .Values.application.api.secretName }}
+        {{- end }}
+        env:
+        {{- with .Values.application.api.env }}
+        {{- range $key, $val := . }}
+        {{- if $val }}
+          - name: "{{ tpl $key $  }}"
+            value: "{{ tpl $val $  }}"
+        {{- end }}
+        {{- end }}
+        {{- end }}
+          - name: MBUsername
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.application.api.secretName }}
+                key: username
+          - name: MBPassword
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.application.api.secretName }}
+                key: password
+
+        ports:
+        - name: "{{ .Values.service.api.name }}"
+          containerPort: {{ .Values.service.api.internalPort }}
+        {{- if .Values.livenessProbe }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.livenessProbe.path }}
+            port: {{ .Values.service.api.internalPort }}
+            scheme: {{ .Values.livenessProbe.scheme }}
+          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+          timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+          periodSeconds: 30
+        {{- end }}
+        {{- if .Values.readinessProbe }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.readinessProbe.path }}
+            port: {{ .Values.service.api.internalPort }}  
+            scheme: {{ .Values.readinessProbe.scheme }}
+          initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+          timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+          periodSeconds: 30
+        {{- end }}
+        resources:
+{{ toYaml .Values.resources.api | indent 12 }}
+      {{- if .Values.hostAliases }}
+      {{- with .Values.hostAliases }}
+      hostAliases:
+      {{- range $key, $val :=  . }}
+      - ip: {{ $key }}
+        hostnames:
+        {{- range $hostname := $val }}
+        - {{ $hostname }}
+        {{- end -}}
+      {{- end}}
+      {{- end}}
+      {{- end}}
+        volumeMounts:
+          - mountPath: "/var/source"
+            name: source-vol
+          - mountPath: "/var/target"
+            name: target-vol
+          - mountPath: "/mnt/stores/transactions"
+            name: transaction-query-service-vol
+      volumes:
+      - name: source-vol
+        persistentVolumeClaim:
+          claimName: glasswallsource-pvc
+      - name: target-vol
+        persistentVolumeClaim:
+          claimName: glasswalltarget-pvc
+      - name: transaction-query-service-vol
+        persistentVolumeClaim:
+          claimName: pvc-transaction-query-service
+          

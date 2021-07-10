@@ -1,0 +1,58 @@
+environment:
+podcontroller:
+  name: pod-controller
+  namespace: icap-adaptation
+  rolename: pod-controller-role
+  saname: pod-controller-sa
+  replicas: 1
+  processimage: k8serviceaccount/go-k8s-process
+  pod_count: 25
+srv:
+  name: srv
+  replicas: 1
+queue:
+  adaptationRequest:
+    hostname: "rabbitmq-service"
+    port: "\"5672\""
+minio:
+  adaptationRequest:
+    endpoint: "minio-server.minio.svc.cluster.local:9000"
+    sourcebucket: "sourcefiles"
+    processedbucket: "cleanfiles"
+  accessKey: minio
+  secretKey: <strong-password>
+imagestore:
+  podcontroller:
+    registry: ""
+    repository: k8serviceaccount/go-k8s-controller
+    tag: v0.5.0
+  srv:
+    registry: ""
+    repository: k8serviceaccount/go-k8s-srv
+    tag: v0.5.0
+  process:
+    registry: ""
+    repository: k8serviceaccount/go-k8s-process
+    tag: v0.5.0
+volumemountpath:
+  source: "/var/source"
+  target: "/var/target"
+  transactions: /mnt/transactions
+jaeger:
+  host: "jaeger.jaeger.svc.cluster.local"
+  port: "6831"
+  on: "true"
+# Possible values are baremetal, Azure, GCP, AWS
+cloud_provider: "baremetal"
+gcp:
+  filestore:
+    source_ip_address: "<nfs-ip-address>"
+    target_ip_address: "<nfs-ip-address>"
+    transactions_ip_address: "<nfs-ip-address>"
+    source_path: "/<nfs-root>/source"
+    target_path: "/<nfs-root>/target"
+    transactions_path: "/<nfs-root>/transactions"
+
+transactionstore:
+  shareName: transactions
+  storage: 3Gi
