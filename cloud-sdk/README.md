@@ -21,17 +21,7 @@ az aks get-credentials -n <cluster name> -g <resource group name>
 - TBD
 
 ## Setup pre-requisites:
-1. Install nginx ingress controller
-
-```
-kubectl create ns ingress-nginx
-helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-helm repo update
-helm install nginx-ingress ingress-nginx/ingress-nginx -ningress-nginx
-kubectl get all -ningress-nginx
-```
-
-2. Install `ReadWriteMany` supported persistence volume. These steps vary based on the cloud provider. For Azure, this step is not requied. For AWS or GCP follow the specific sections.
+Install `ReadWriteMany` supported persistence volume. These steps vary based on the cloud provider. For Azure, this step is not requied. For AWS or GCP follow the specific sections.
 
 ### For GCP
 - Create a Google Filestore instance by running below command. Make sure the given IP range is not in use. `Filestore Editor` role is required to create a Filestore instance.
