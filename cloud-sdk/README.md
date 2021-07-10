@@ -70,5 +70,5 @@ helmfile apply
 ```
 kubectl get ing -n icap-adaptation
 ```
-- Go to http://<ip address>/swagger to access the API's swagger
+- Go to http://< ip address >/swagger to access the API's swagger
 
