@@ -10,7 +10,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: {{ .Values.transactionstore.storage }}
+      storage: 3G
   selector:
     matchLabels:
       usage: pv-transaction-query-service
