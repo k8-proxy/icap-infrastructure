@@ -8,7 +8,7 @@ spec:
   accessModes:
   - ReadWriteOnce
   capacity:
-    storage: {{ .Values.transactionstore.storage }}
+    storage: 3G
   hostPath:
     path: /var/local/rancher/host/c/transactionquery
     type: ""
