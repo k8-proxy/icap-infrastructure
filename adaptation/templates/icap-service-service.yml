@@ -5,7 +5,7 @@ metadata:
   labels:
     app: {{ .Values.icapservice.applabel }}
 spec:
-  type: LoadBalancer
+  type: {{ .Values.icapservice.type }}
   selector:
     app: {{ .Values.icapservice.applabel }}
   # The node port is hard coded to match the load balancer. In the future we want to be template it.

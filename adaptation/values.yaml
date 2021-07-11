@@ -65,6 +65,7 @@ icapservice:
   port: 1344
   tlsport: 1345
   enableFileId: true
+  type: LoadBalancer
 icapserviceconfig:
   processingtimeoutduration: 00:01:00
 cicapservice:
