@@ -85,4 +85,4 @@ kubectl describe ing -nicap-adaptation
 kubectl get ing -n icap-adaptation
 ```
 - Go to http://< ip address >/swagger to access the API's swagger
-
+- It may take around 5 minutes for the ingress rules to sync and the IP of ingress may change after few minutes.
