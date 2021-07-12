@@ -21,7 +21,14 @@ az aks get-credentials -n <cluster name> -g <resource group name>
 - TBD
 
 ## Setup pre-requisites:
-Install `ReadWriteMany` supported persistence volume. These steps vary based on the cloud provider. For Azure, this step is not requied. For AWS or GCP follow the specific sections.
+- Install helmfile
+```
+# For linux/mac
+curl -fsSL -o helmfile https://github.com/roboll/helmfile/releases/download/v0.139.9/helmfile_linux_amd64
+chmod 700 helmfile 
+sudo mv helmfile  /usr/local/bin/
+```
+- Install `ReadWriteMany` supported persistence volume. These steps vary based on the cloud provider. For Azure, this step is not requied. For AWS or GCP follow the specific sections.
 
 ### For GCP
 - Create a Google Filestore instance by running below command. Make sure the given IP range is not in use. `Filestore Editor` role is required to create a Filestore instance.
