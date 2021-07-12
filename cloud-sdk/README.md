@@ -1,7 +1,7 @@
 
 ## Connect to Kubernetes Cluster
 ### For GCP
-- Create a Kubernetes cluster in GCP
+- Create a Kubernetes cluster in GCP with a node size of at least 2 CPU cores and 8GB Memory
 - Run below command in the local machine to get kubernetes configuration of the cluster.
 ```
 gcloud container clusters get-credentials <cluster name> --zone <zone id> --project <GCP project id>
