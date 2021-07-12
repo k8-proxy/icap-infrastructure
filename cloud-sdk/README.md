@@ -21,9 +21,10 @@ az aks get-credentials -n <cluster name> -g <resource group name>
 - TBD
 
 ## Setup pre-requisites:
-- Install helmfile
+- Install helmfile and helm-diff plugins
 ```
 # For linux/mac
+helm plugin install https://github.com/databus23/helm-diff
 curl -fsSL -o helmfile https://github.com/roboll/helmfile/releases/download/v0.139.9/helmfile_linux_amd64
 chmod 700 helmfile 
 sudo mv helmfile  /usr/local/bin/
