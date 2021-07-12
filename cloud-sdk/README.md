@@ -73,7 +73,11 @@ cd cloud-sdk
 helmfile apply
 ```
 ## Change Firewall rules
-Describe the ingress and run the gcloud commands mentioned to create Firewall rules to allow traffic to ingress
+Describe the ingress and run the gcloud commands mentioned to create Firewall rules to allow 
+traffic to ingress
+```
+kubectl describe ing -nicap-adaptation
+```
 
 ## Validate the deployment
 - Get Cloud SDK REST API ingress external IP address.  Run below command and copy the IP address mentioned in `ADDRESS` column of `rebuild-api-glasswall-sdk-api` ingress
