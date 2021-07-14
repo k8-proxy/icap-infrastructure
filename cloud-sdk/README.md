@@ -34,35 +34,25 @@ sudo mv helmfile  /usr/local/bin/
 ### For GCP
 - Create a Google Filestore instance by running below command. Make sure the given IP range is not in use. `Filestore Editor` role is required to create a Filestore instance.
 ```
+NETWORK_PROJECT=network-project-b1
+SERVICE_PROJECT=unique-axle-314109
+ZONE_ID=us-central1-c
 gcloud filestore instances create nfs-server \
-    --project=<project id> \
+    --project=$SERVICE_PROJECT \
     --zone=<zone id> \
     --tier=STANDARD \
-    --file-share=name="icapsourcevol1",capacity=1TB \
+    --file-share=name="glasswallstore",capacity=1TB \
     --network=name="<VPC-name>",reserved-ip-range="</29 IP range>"
-```
-- SSH to any instance with Ubuntu/RHEL/CentOS/SUSE OS present in the zone where Filestore is created. If no instance exists, please create a new instance.
-- Install NFS client.
-```
-# Install nfs client, based on the OS
-# For Ubuntu
-sudo apt-get -y update &&
-sudo apt-get -y install nfs-common
-# For RHEL/CentOs
-sudo yum update &&
-sudo yum install nfs-utils
-# For SUSE
-sudo zypper update &&
-sudo zypper -n install nfs-client
-```
-- Mount the Filestore and create 3 folders (source, target, transactions)
-
-```
-sudo mkdir -p /mnt/glasswall-filestore
-sudo mount 10.1.0.2:/icapsourcevol1 /mnt/glasswall-filestore
-sudo mkdir /mnt/glasswall-filestore/source /mnt/glasswall-filestore/target /mnt/glasswall-filestore/transactions
-sudo umount /mnt/glasswall-filestore
-sudo rm -rf /mnt/glasswall-filestore
+wget -O yq https://github.com/mikefarah/yq/releases/download/v4.9.8/yq_linux_amd64  && sudo mv yq /usr/local/bin
+FILESTORE_IP=$(gcloud beta filestore instances describe nfs-serverdp --zone us-central1-c --project $SERVICE_PROJECT | yq eval '.networks[0].ipAddresses[0]' - )
+FILESTORE_NAME=$(gcloud beta filestore instances describe nfs-serverdp --zone us-central1-c --project $SERVICE_PROJECT | yq eval '.fileShares[0].name' - )
+echo "Filestore IP address is $FILESTORE_IP and name is $FILESTORE_NAME"
+gcloud beta compute --project=$SERVICE_PROJECT instances create nfs-client --zone=$ZONE_ID --machine-type=e2-micro --subnet=projects/$NETWORK_PROJECT/regions/us-central1/subnetworks/< VPC name > --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=564212831534-compute@developer.gserviceaccount.com --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --image=ubuntu-2004-focal-v20210702 --image-project=ubuntu-os-cloud --boot-disk-size=10GB --boot-disk-type=pd-balanced --boot-disk-device-name=nfs-client --no-shielded-secure-boot --shielded-vtpm --shielded-integrity-monitoring --reservation-affinity=any
+sleep 20s
+gcloud compute ssh nfs-client --command "sudo apt-get -y update && sudo apt-get -y install nfs-common && sudo mkdir -p /mnt/glasswall-filestore && sudo mount $FILESTORE_IP:/$FILESTORE_NAME /mnt/glasswall-filestore && sudo mkdir -p /mnt/glasswall-filestore/source /mnt/glasswall-filestore/target /mnt/glasswall-filestore/transactions && sudo umount /mnt/glasswall-filestore && sudo rm -rf /mnt/glasswall-filestore" --zone=$ZONE_ID
+echo "Created directories in the Google Filestore"
+gcloud --quiet compute instances delete nfs-client --zone $ZONE_ID
+echo "Delete nfs-client instance"
 ```
 ### For AWS
 - TBD
@@ -70,6 +60,13 @@ sudo rm -rf /mnt/glasswall-filestore
 ## Deploy helm charts:
 ```
 cd cloud-sdk
+export MINIO_USERNAME=minio
+export MINIO_PASSWORD=<password>
+export RABBITMQ_USERNAME=guest
+export RABBITMQ_PASSWORD=<password>
+export FILESTORE_IP=<fileshare ip>
+export FILESHARENAME=<fileshare name>
+helmfile diff
 helmfile apply
 ```
 ## Change Firewall rules
